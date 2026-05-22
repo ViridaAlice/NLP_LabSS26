@@ -11,7 +11,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 # >>> INSERT YOUR HUGGING FACE TOKEN HERE <<<
 # Example: HF_TOKEN = "hf_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 # You can generate a token at https://huggingface.co/settings/tokens
-HF_TOKEN = "" 
+HF_TOKEN = " " 
 
 MODEL_ID = "Qwen/Qwen1.5-1.8B-Chat"
 DATASET_PATH = "pubmed_xmlc_dataset_final.json" # Ensure this matches your final output filename
