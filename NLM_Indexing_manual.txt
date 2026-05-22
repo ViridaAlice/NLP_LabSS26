@@ -1,0 +1,146 @@
+The Indexing Process
+Introduction
+
+    Read carefully and understand the title.
+
+    Read the abstract down to the point where the author states the purpose of his article and correlate it with the title. Absorb but do not necessarily attempt to index the introductory material since this is usually a statement of known facts upon which the present study is based.
+
+    Select for indexing only those subjects actually discussed as opposed to those subjects merely mentioned (and of little or no value in retrieval).
+
+    Determine whether the author achieved the aims set forth in his stated purpose. Weigh conclusions based on the text but do not index implications or suggested future applications. Do not index conclusive statements not supported by discussion in the text.
+
+    Scan the abstract, for items missed in indexing, being careful, however, to locate actual discussions within the text; ignore mere implications.
+
+Questions to ask while you are indexing:
+
+What are the major points of the article?
+
+What are the minor points of the article?
+
+What is discussed as opposed to what is only mentioned?
+
+What is the slant of the article? Is it:
+
+    experimental?
+    clinical?
+    pediatric?
+    geriatric?
+    obstetric?
+    veterinary?
+    microbiological?
+    endocrinological?
+
+A good indexer:
+
+    Does not let bias or knowledge of a subject alter how the article is indexed
+
+    index only what the article says
+
+    Recognizes the authority of an article, and does not correct any of the assertions made in the article
+
+    Do not attempt to correct bad science or point out mistakes
+
+    Describes the concepts in an article using MeSH terms
+
+
+Check Tags
+Introduction
+
+Virtually every biomedical article will describe subjects of research (human or animal; mice or rats, etc). Clinical articles will describe treatment, diagnosis, etc of diseases in patients. These articles will almost always mention the number of patients, their gender and age. Experimental articles will almost always mention the species and gender of the animal. HUMAN and ANIMAL are the most widely used searching terms in PubMed.
+
+These concepts which are mentioned in almost every article (human, animal, male, female, child, etc) are designated Check Tags. In the past, when MeSH indexers had to type MeSH terms, data forms were preprinted with these frequently occurring concepts, and indexers simply checked the appropriate box.
+
+Check tags are routinely added to the indexing even if just mentioned in the article. The check tag concept does not need to be discussed. For example if an article only mentions that the subject of the study was a pregnant 35 year old, the indexer must check the tags PREGNANCY, HUMAN, FEMALE and ADULT. Check tag concepts may be found anywhere in the article - in the Materials and Methods section of the article, in tables, in the text associated with a figure, etc. 
+
+
+
+Check Tags
+Pregnancy
+
+Both the main heading PREGNANCY and the check tag PREGNANCY are used for MAMMALS only!
+
+All articles mentioning a pregnancy must have the check tag PREGNANCY. The indexer must then check the tags HUMAN or ANIMAL and also FEMALE. The check tag PREGNANCY can not be selected without selecting the check tag FEMALE and the check tag HUMAN or ANIMAL.
+
+Pregnancy as IM heading vs. check tag
+Pregnancy will be indexed IM when normal pregnancy is the main focus of the article. If pregnancy is not the main point of the article use the check tag PREGNANCY.
+
+    Pregnancy in developing countries.
+
+    HUMAN (check tag)
+    FEMALE (check tag)
+    *PREGNANCY
+    *DEVELOPING COUNTRIES
+
+    Pre-eclampsia in Hispanic Americans.
+
+    HUMAN (check tag)
+    FEMALE (check tag)
+    PREGNANCY (check tag)
+    PRE-ECLAMPSIA /*ethnol
+    *HISPANIC AMERICANS
+
+
+Age
+
+    The age group check tags refer only to humans. Do not use any of the age group check tags for animals.
+    Indexers must check the tag HUMAN if any of the age check tags are checked.
+    Indexers must check the appropriate age group check tags even if the age group appears obvious.
+        Example: if CHILD BEHAVIOR is indexed, the check tag CHILD or specific such as CHILD, PRESCHOOL and HUMAN must be checked.
+    Indexers must check all appropriate age group check tags if a range of ages appears in the article.
+        Example: An article with subjects ranging in age 7 to 79 would have the check tags HUMAN, CHILD, ADOLESC, YOUNG ADULT, ADULT, MID AGE & AGED
+    An article with subjects ranging in age 19 to 24 would have the check tag YOUNG ADULT only.
+    An article with subjects ranging in age 25 to 44 would have the check tag ADULT only.
+    An article with subjects ranging in age 19 to 44 would have the check tag YOUNG ADULT and ADULT.
+    Never assume the age of a patient, if the age is not listed ignore the age tag.
+
+ 
+If the article states 	Use 	Do not use
+Infant 	INF (1 to 23 mo) 	INF NEW (to 1 mo) & INF (1 to 23 mo)
+Child 	CHILD (6-12) 	CHILD PRE (2-5) & CHILD (6-12)
+Adult 	ADULT (19-44) 	MID AGE (45-64) & ADULT (19-44) & YOUNG ADULT (19-24)
+
+Animal
+
+    Any article discussing an animal must have the check tag ANIMAL.
+    Index also the specific animal (rats, mice, etc) using the check tag (if available) or the main heading for the animal IM or NIM as needed.
+    If an article describes the use of tissue from an animal, index with the check tag ANIMAL and the name of the animal (as a check tag or a main heading).
+    Use the check tag ANIMAL even if the IM term is animal specific, such as "HOOF" or "UDDER"
+
+If an animal is 	Index using 	Example 	Index the animal as
+A veterinary entity 	The animal as an IM heading 	Humoral immunity in sheep 	SHEEP (IM) ANIMAL (check tag)
+An experimental subject for which there is a check tag 	check tag Animal and specific animal check tag 	Response of cultured hamster cells to x-ray 	ANIMAL (check tag) check tag HAMSTER
+An experimental subject for which there is no check tag 	check tag Animal and specific animal main heading 	Action potential of Anura neuromuscular junction 	ANIMAL check tag ANURA (NIM)
+An animal is the main point of an article such as a species in anatomy studies 	The animal as an IM heading and the animal check tag 	Anatomy of cat joints 	CATS (IM)
+ANIMAL check tag
+
+
+
+MeSH Headings & Trees
+An Introduction to MeSH
+
+MeSH (Medical Subject Headings) is the controlled vocabulary of terms organized hierarchically into 16 trees. Each tree is assigned a letter as an identifier. MeSH can be viewed online at http://www.nlm.nih.gov/mesh/MBrowser.html.
+A 	Anatomy
+B 	Organisms
+C 	Diseases
+D 	Chemicals and Drugs
+E 	Analytical, Diagnostic and Therapeutic Techniques and Equipment
+F 	Psychiatry and Psychology
+G 	Phenomena and Processes
+H 	Disciplines and Occupations
+I 	Anthropology, Education, Sociology and Social Phenomena
+J 	Technology, Industry, and Agriculture
+K 	Humanities
+L 	Information Science
+M 	Named Groups
+N 	Health Care
+V 	Publication Characteristics
+Z 	Geographicals
+
+Rule of Three
+
+Indexers always try to select the most specific term that describes the concepts in an article. However, if more than three specific concepts treed under a more general concept common to all are discussed in an article, index the general concept (IM) and specific concepts NIM or not at all, depending on the article.
+
+For example "Levels of D-aspartic acid, 1-carboxyglutamic acid, polyglutamic acid, and isoaspartic acid." can be indexed as AMINO ACIDS, ACIDIC. 
+
+
+

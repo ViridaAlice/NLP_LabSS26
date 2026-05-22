@@ -1,0 +1,18 @@
+experiment_name: "pubmed_mesh_1_turn_symmetric"
+dataset: 
+  path: "./pubmed_mini_test.jsonl"
+  format: "quality" # Tricking the repo into parsing our custom file
+
+debate_structure:
+  format: "simultaneous"
+  rounds: 1 # Enforce one-turn debate!
+  
+models:
+  debater_a: "Qwen/Qwen1.5-4B-Chat" # Or whichever local model you are using
+  debater_b: "Qwen/Qwen1.5-4B-Chat"
+  judge: "google/gemma-2-2b-it" # Your non-expert judge
+
+parameters:
+  max_words_per_argument: 150
+  temperature: 0.2 # Low temperature for factual medical logic
+  use_scratchpad: true # Allows <thinking> tags
