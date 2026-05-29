@@ -16,7 +16,7 @@ JUDGE_MODEL_ID = "./Qwen2.5-0.5B-Instruct"
 DEBATER_MODEL_ID = "./Qwen2.5-3B-Instruct"  
 DATASET_PATH = "pubmed_xmlc_dataset.json" 
 MANUAL_PATH = "NLM_Indexing_manual.txt"
-BASE_OUTPUT_PATH = "debate_experiment_results"
+BASE_OUTPUT_PATH = "debate_experiment_results2"
 
 # ==============================================================================
 
@@ -46,10 +46,14 @@ def load_resources():
 # ----------------- PROMPT BUILDERS -----------------
 def build_debater_messages(abstract, assigned_tags, candidate_tag, side, manual_text):
     """Side is either 'PRO' or 'CON'"""
+    
+    # NEW: Added explicit anti-concession logic (Khan et al. 2024 recommendation)
     system_prompt = (
-        f"You are an expert medical debater. Your goal is to persuade the judge that the "
+        f"You are an expert medical debater participating in a competitive game. Your goal is to fiercely persuade the judge that the "
         f"candidate Medical Subject Heading (MeSH) tag {'BELONGS' if side == 'PRO' else 'DOES NOT BELONG'} "
         f"to the provided biomedical abstract.\n"
+        f"CRITICAL RULE: You MUST NEVER concede to the opposing side or admit weakness, even if you secretly believe your assigned position is incorrect. "
+        f"Always confidently defend your assigned position using the text provided.\n"
         f"To guide you, you are provided with excerpts from the NLM Indexing Manual.\n"
         f"Maintain a scholarly, assertive tone focused on evidence-based analysis.\n"
         f"Be concise. Your argument must be under 150 words."
@@ -67,16 +71,18 @@ Already Assigned Tags:
 
 Candidate Tag: {candidate_tag}
 
-Write your argument {'supporting' if side == 'PRO' else 'opposing'} the assignment of this tag."""
+Write your argument confidently {'supporting' if side == 'PRO' else 'opposing'} the assignment of this tag."""
     return [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}]
 
 
 def build_judge_messages(abstract, assigned_tags, candidate_tag, arg1, arg2, manual_text):
+    # NEW: Structured the judge to explicitly weigh both sides before deciding to prevent the "Default-to-No" bias.
     system_prompt = (
-        "You are an expert judge in a debate. You will be shown an abstract, a set of already assigned tags, "
+        "You are an impartial expert judge in a medical debate. You will be shown an abstract, a set of already assigned tags, "
         "a candidate MeSH tag, and two arguments from expert debaters (Debater A and Debater B) arguing opposing sides.\n"
         "To guide you, you are provided with excerpts from the NLM Indexing Manual.\n"
-        "Your objective is to choose whether the candidate tag belongs to the article (Yes) or not (No) based on the arguments.\n"
+        "Your objective is to evaluate both arguments and choose whether the candidate tag belongs to the article (Yes) or not (No).\n"
+        "Do not automatically reject the tag just because there is a disagreement. Evaluate the evidence fairly.\n"
         "Structure your output as follows:\n"
         "<thinking>[THINKING]</thinking>\n"
         "Answer: [Yes|No]\n"
@@ -101,7 +107,11 @@ Debater A's Argument:
 Debater B's Argument:
 {arg2}
 
-Think step by step to determine which debater is correct. Put your reasoning inside <thinking></thinking> tags. Then, on a new line, give your final answer formatted exactly as "Answer: Yes" or "Answer: No"."""
+Think step by step. 
+1. Summarize the strongest point made that the tag BELONGS.
+2. Summarize the strongest point made that the tag DOES NOT BELONG.
+3. Decide which evidence is stronger based on the abstract.
+Put your reasoning inside <thinking></thinking> tags. Then, on a new line, give your final answer formatted exactly as "Answer: Yes" or "Answer: No"."""
     return [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}]
 
 # ----------------- PARSER & INFERENCE -----------------
@@ -141,8 +151,6 @@ def generate_text(messages, model, tokenizer, max_tokens=256):
 # ----------------- MAIN LOGIC -----------------
 def main():
     args = parse_args()
-    
-    # Give each chunk a UNIQUE random seed so pro_first distributions are balanced across the whole dataset
     random.seed(42 + args.chunk_id)
     
     if not torch.cuda.is_available():
@@ -176,12 +184,10 @@ def main():
                 for r in results: completed_evals.add((r["stage"], r["pmid"]))
         except json.JSONDecodeError: pass
 
-    # Load 3B Debater Model
     print(f"\nLoading Debater Model ({DEBATER_MODEL_ID})...")
     debater_tokenizer = AutoTokenizer.from_pretrained(DEBATER_MODEL_ID)
     debater_model = AutoModelForCausalLM.from_pretrained(DEBATER_MODEL_ID, torch_dtype=torch.float16, device_map="cuda")
     
-    # Load 0.5B Judge Model
     print(f"Loading Judge Model ({JUDGE_MODEL_ID})...")
     judge_tokenizer = AutoTokenizer.from_pretrained(JUDGE_MODEL_ID)
     judge_model = AutoModelForCausalLM.from_pretrained(JUDGE_MODEL_ID, torch_dtype=torch.float16, device_map="cuda")
@@ -202,7 +208,6 @@ def main():
             correct_tags = article.get("mesh_tags", [])
             if not correct_tags: continue
 
-            # Stage Assignment
             if stage_name == "Round 1: True Tag":
                 candidate_tag = random.choice(correct_tags)
                 assigned_tags = [t for t in correct_tags if t != candidate_tag]
@@ -218,26 +223,22 @@ def main():
 
             abstract = article.get("abstract", "")
 
-            # 1. Debater PRO generates argument
+            # If you want to see exactly what the debaters are saying, you can print pro_arg and con_arg here
             pro_msgs = build_debater_messages(abstract, assigned_tags, candidate_tag, side="PRO", manual_text=manual_text)
             pro_arg = generate_text(pro_msgs, debater_model, debater_tokenizer, max_tokens=256)
 
-            # 2. Debater CON generates argument
             con_msgs = build_debater_messages(abstract, assigned_tags, candidate_tag, side="CON", manual_text=manual_text)
             con_arg = generate_text(con_msgs, debater_model, debater_tokenizer, max_tokens=256)
 
-            # 3. Randomize Presentation Order (To prevent positional bias!)
             pro_is_first = random.choice([True, False])
             if pro_is_first:
                 arg1, arg2 = pro_arg, con_arg
             else:
                 arg1, arg2 = con_arg, pro_arg
 
-            # 4. Judge generates verdict
             judge_msgs = build_judge_messages(abstract, assigned_tags, candidate_tag, arg1, arg2, manual_text=manual_text)
             judge_output = generate_text(judge_msgs, judge_model, judge_tokenizer, max_tokens=512)
 
-            # 5. Parse and Record
             prediction = parse_output(judge_output, pmid, stage_name, verbose=args.verbose)
             is_correct = (prediction == ground_truth)
             
@@ -258,7 +259,6 @@ def main():
             })
             completed_evals.add((stage_name, pmid))
 
-            # Incremental Save
             total_evals = len(results)
             total_correct = sum(1 for r in results if r["is_correct"])
             with open(output_file, "w", encoding="utf-8") as f:
