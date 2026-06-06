@@ -12,11 +12,11 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 # ==============================================================================
 HF_TOKEN = os.environ.get("HF_TOKEN")
 
-JUDGE_MODEL_ID = "./Qwen2.5-0.5B-Instruct"  
-DEBATER_MODEL_ID = "./Qwen2.5-3B-Instruct"  
+JUDGE_MODEL_ID = "./Qwen3.5-0.5B"  
+DEBATER_MODEL_ID = "./Qwen3.5-2B"  
 DATASET_PATH = "pubmed_xmlc_dataset.json" 
 MANUAL_PATH = "NLM_Indexing_manual.txt"
-BASE_OUTPUT_PATH = "debate_experiment_results_2"  # Updated output path
+BASE_OUTPUT_PATH = "interactive_results"  
 
 # ==============================================================================
 
@@ -152,36 +152,31 @@ def parse_output(generation_text, pmid, stage_name, verbose=False):
     if verbose:
         print(f"\n      [JUDGE OUTPUT for PMID {pmid}]:\n{cleaned_text}\n")
     
-    # Tier 1: Search for all "Answer: Yes/No" patterns and take the LAST one
     matches = re.findall(r"Answer:\s*(Yes|No)", cleaned_text, re.IGNORECASE)
     if matches: 
-        # Grab the last match in the text
         return matches[-1].capitalize()
         
-    # Tier 2: Check the text generated *after* the </thinking> tag
     if "</thinking>" in cleaned_text:
         after_thinking = cleaned_text.split("</thinking>")[-1].strip()
         for word in re.sub(r'[^\w\s]', '', after_thinking).strip().split():
             if word.capitalize() in ["Yes", "No"]: return word.capitalize()
 
-    # Tier 3: Search the last non-empty line for a standalone "yes" or "no"
     lines = [line.strip() for line in cleaned_text.split('\n') if line.strip()]
     if lines:
         if re.search(r"\b(yes)\b", lines[-1], re.IGNORECASE): return "Yes"
         if re.search(r"\b(no)\b", lines[-1], re.IGNORECASE): return "No"
 
-    # Tier 4: Look at the literal final word of the output
     end_words = re.sub(r'[^\w\s]', '', cleaned_text).strip().split()
     if end_words and end_words[-1].capitalize() in ["Yes", "No"]:
         return end_words[-1].capitalize()
             
     return "Unknown"
 
-def generate_text(messages, model, tokenizer, max_tokens=256):
+def generate_text(messages, model, tokenizer, max_tokens=256, temperature=0.2):
     text_input = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
     model_inputs = tokenizer([text_input], return_tensors="pt").to(model.device)
     generated_ids = model.generate(
-        **model_inputs, max_new_tokens=max_tokens, temperature=0.2, do_sample=True, pad_token_id=tokenizer.eos_token_id
+        **model_inputs, max_new_tokens=max_tokens, temperature=temperature, do_sample=True, pad_token_id=tokenizer.eos_token_id
     )
     generated_ids = [output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)]
     return tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0].strip()
@@ -262,29 +257,33 @@ def main():
 
             abstract = article.get("abstract", "")
 
-            # Randomize who gets to be Debater A
             pro_is_a = random.choice([True, False])
             a_side = "PRO" if pro_is_a else "CON"
             b_side = "CON" if pro_is_a else "PRO"
 
-            # TURN 1: Debater A (Opening)
             msgs_a1 = build_debater_A_turn1(abstract, assigned_tags, candidate_tag, a_side, manual_text)
             a_turn1 = generate_text(msgs_a1, debater_model, debater_tokenizer, max_tokens=256)
 
-            # TURN 2: Debater B (Opening + Response to A)
             msgs_b1 = build_debater_B_turn1(abstract, assigned_tags, candidate_tag, b_side, a_turn1, manual_text)
             b_turn1 = generate_text(msgs_b1, debater_model, debater_tokenizer, max_tokens=300)
 
-            # TURN 3: Debater A (Rebuttal to B)
             msgs_a2 = build_debater_A_turn2(abstract, assigned_tags, candidate_tag, a_side, a_turn1, b_turn1, manual_text)
             a_turn2 = generate_text(msgs_a2, debater_model, debater_tokenizer, max_tokens=300)
 
-            # TURN 4: Judge Verdict
             judge_msgs = build_judge_messages(abstract, assigned_tags, candidate_tag, a_side, b_side, a_turn1, b_turn1, a_turn2, manual_text)
-            judge_output = generate_text(judge_msgs, judge_model, judge_tokenizer, max_tokens=512)
-
-            # Parse and Record
-            prediction = parse_output(judge_output, pmid, stage_name, verbose=args.verbose)
+            
+            prediction = "Unknown"
+            judge_output = ""
+            for attempt in range(3):
+                temp = 0.2 if attempt == 0 else 0.4
+                judge_output = generate_text(judge_msgs, judge_model, judge_tokenizer, max_tokens=512, temperature=temp)
+                prediction = parse_output(judge_output, pmid, stage_name, verbose=args.verbose)
+                
+                if prediction != "Unknown":
+                    break
+                else:
+                    print(f"      -> [RETRY] PMID {pmid} output was Unknown. Retrying (Attempt {attempt+1}/3)...")
+            
             is_correct = (prediction == ground_truth)
             
             status_icon = '✅' if is_correct else '❌'
@@ -305,7 +304,6 @@ def main():
             })
             completed_evals.add((stage_name, pmid))
 
-            # Incremental Save
             total_evals = len(results)
             total_correct = sum(1 for r in results if r["is_correct"])
             with open(output_file, "w", encoding="utf-8") as f:

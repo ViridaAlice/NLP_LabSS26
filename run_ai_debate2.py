@@ -11,12 +11,11 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 # --- CONFIGURATION ---
 # ==============================================================================
 HF_TOKEN = os.environ.get("HF_TOKEN")
-
-JUDGE_MODEL_ID = "./Qwen2.5-0.5B-Instruct"  
-DEBATER_MODEL_ID = "./Qwen2.5-3B-Instruct"  
+JUDGE_MODEL_ID = "./Qwen3.5-0.8B"  
+DEBATER_MODEL_ID = "./Qwen3.5-2B"  
 DATASET_PATH = "pubmed_xmlc_dataset.json" 
 MANUAL_PATH = "NLM_Indexing_manual.txt"
-BASE_OUTPUT_PATH = "debate_experiment_results2"
+BASE_OUTPUT_PATH = "statement_results"
 
 # ==============================================================================
 
@@ -43,11 +42,7 @@ def load_resources():
         
     return dataset, manual_text
 
-# ----------------- PROMPT BUILDERS -----------------
 def build_debater_messages(abstract, assigned_tags, candidate_tag, side, manual_text):
-    """Side is either 'PRO' or 'CON'"""
-    
-    # NEW: Added explicit anti-concession logic (Khan et al. 2024 recommendation)
     system_prompt = (
         f"You are an expert medical debater participating in a competitive game. Your goal is to fiercely persuade the judge that the "
         f"candidate Medical Subject Heading (MeSH) tag {'BELONGS' if side == 'PRO' else 'DOES NOT BELONG'} "
@@ -76,17 +71,21 @@ Write your argument confidently {'supporting' if side == 'PRO' else 'opposing'} 
 
 
 def build_judge_messages(abstract, assigned_tags, candidate_tag, arg1, arg2, manual_text):
-    # NEW: Structured the judge to explicitly weigh both sides before deciding to prevent the "Default-to-No" bias.
     system_prompt = (
         "You are an impartial expert judge in a medical debate. You will be shown an abstract, a set of already assigned tags, "
         "a candidate MeSH tag, and two arguments from expert debaters (Debater A and Debater B) arguing opposing sides.\n"
         "To guide you, you are provided with excerpts from the NLM Indexing Manual.\n"
         "Your objective is to evaluate both arguments and choose whether the candidate tag belongs to the article (Yes) or not (No).\n"
-        "Do not automatically reject the tag just because there is a disagreement. Evaluate the evidence fairly.\n"
-        "Structure your output as follows:\n"
-        "<thinking>[THINKING]</thinking>\n"
-        "Answer: [Yes|No]\n"
-        "Focus on strictly formatting your final answer on the last line."
+        "Do not automatically reject the tag just because there is a disagreement. Evaluate the evidence fairly.\n\n"
+        "CRITICAL INSTRUCTION: You MUST think step-by-step FIRST inside <thinking> tags. Only AFTER you finish your reasoning, "
+        "output your final decision on the very last line.\n\n"
+        "REQUIRED FORMAT:\n"
+        "<thinking>\n"
+        "1. Strongest point for BELONGS: ...\n"
+        "2. Strongest point for DOES NOT BELONG: ...\n"
+        "3. My evaluation: ...\n"
+        "</thinking>\n"
+        "Answer: [Yes/No]"
     )
     user_prompt = f"""Here is the NLM Indexing manual for your reference:
 <indexing_manual>
@@ -107,21 +106,17 @@ Debater A's Argument:
 Debater B's Argument:
 {arg2}
 
-Think step by step. 
-1. Summarize the strongest point made that the tag BELONGS.
-2. Summarize the strongest point made that the tag DOES NOT BELONG.
-3. Decide which evidence is stronger based on the abstract.
-Put your reasoning inside <thinking></thinking> tags. Then, on a new line, give your final answer formatted exactly as "Answer: Yes" or "Answer: No"."""
+Based on the abstract and the debate, does the candidate tag belong? Follow the REQUIRED FORMAT exactly."""
     return [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}]
 
-# ----------------- PARSER & INFERENCE -----------------
 def parse_output(generation_text, pmid, stage_name, verbose=False):
     cleaned_text = generation_text.strip()
     if verbose:
         print(f"\n      [JUDGE OUTPUT for PMID {pmid}]:\n{cleaned_text}\n")
     
-    match = re.search(r"Answer:\s*(Yes|No)", cleaned_text, re.IGNORECASE)
-    if match: return match.group(1).capitalize()
+    matches = re.findall(r"Answer:\s*(Yes|No)", cleaned_text, re.IGNORECASE)
+    if matches: 
+        return matches[-1].capitalize()
         
     if "</thinking>" in cleaned_text:
         after_thinking = cleaned_text.split("</thinking>")[-1].strip()
@@ -139,16 +134,16 @@ def parse_output(generation_text, pmid, stage_name, verbose=False):
             
     return "Unknown"
 
-def generate_text(messages, model, tokenizer, max_tokens=256):
+# ADDED TEMPERATURE PARAMETER
+def generate_text(messages, model, tokenizer, max_tokens=256, temperature=0.2):
     text_input = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
     model_inputs = tokenizer([text_input], return_tensors="pt").to(model.device)
     generated_ids = model.generate(
-        **model_inputs, max_new_tokens=max_tokens, temperature=0.2, do_sample=True, pad_token_id=tokenizer.eos_token_id
+        **model_inputs, max_new_tokens=max_tokens, temperature=temperature, do_sample=True, pad_token_id=tokenizer.eos_token_id
     )
     generated_ids = [output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)]
     return tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0].strip()
 
-# ----------------- MAIN LOGIC -----------------
 def main():
     args = parse_args()
     random.seed(42 + args.chunk_id)
@@ -223,7 +218,6 @@ def main():
 
             abstract = article.get("abstract", "")
 
-            # If you want to see exactly what the debaters are saying, you can print pro_arg and con_arg here
             pro_msgs = build_debater_messages(abstract, assigned_tags, candidate_tag, side="PRO", manual_text=manual_text)
             pro_arg = generate_text(pro_msgs, debater_model, debater_tokenizer, max_tokens=256)
 
@@ -237,9 +231,20 @@ def main():
                 arg1, arg2 = con_arg, pro_arg
 
             judge_msgs = build_judge_messages(abstract, assigned_tags, candidate_tag, arg1, arg2, manual_text=manual_text)
-            judge_output = generate_text(judge_msgs, judge_model, judge_tokenizer, max_tokens=512)
-
-            prediction = parse_output(judge_output, pmid, stage_name, verbose=args.verbose)
+            
+            # Retry Logic for the Judge
+            prediction = "Unknown"
+            judge_output = ""
+            for attempt in range(3):
+                temp = 0.2 if attempt == 0 else 0.4
+                judge_output = generate_text(judge_msgs, judge_model, judge_tokenizer, max_tokens=512, temperature=temp)
+                prediction = parse_output(judge_output, pmid, stage_name, verbose=args.verbose)
+                
+                if prediction != "Unknown":
+                    break
+                else:
+                    print(f"      -> [RETRY] PMID {pmid} output was Unknown. Retrying (Attempt {attempt+1}/3)...")
+            
             is_correct = (prediction == ground_truth)
             
             status_icon = '✅' if is_correct else '❌'

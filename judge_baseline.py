@@ -12,10 +12,10 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 # ==============================================================================
 HF_TOKEN = os.environ.get("HF_TOKEN")
 
-MODEL_ID = "./Qwen2.5-0.5B-Instruct"  
+MODEL_ID = "./Qwen3.5-0.8B" 
 DATASET_PATH = "pubmed_xmlc_dataset.json" 
 MANUAL_PATH = "NLM_Indexing_manual.txt"
-BASE_OUTPUT_PATH = "baseline_experiment_results"
+BASE_OUTPUT_PATH = "baseline_results"
 
 random.seed(42)
 # ==============================================================================
@@ -24,7 +24,6 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Judge Baseline Evaluation")
     parser.add_argument("--test_mode", action="store_true")
     parser.add_argument("--verbose", action="store_true")
-    # New arguments for Job Arrays (Splitting the dataset)
     parser.add_argument("--chunk_id", type=int, default=0, help="ID of the current chunk (0 to total_chunks-1)")
     parser.add_argument("--total_chunks", type=int, default=1, help="Total number of chunks to split the dataset into")
     return parser.parse_args()
@@ -51,11 +50,14 @@ def build_messages(abstract, assigned_tags, candidate_tag, manual_text):
         "based on its abstract and a set of already assigned tags.\n"
         "To guide you, you are provided with excerpts from the NLM Indexing Manual.\n"
         "Your main objective is to choose whether the candidate tag belongs to the article (Yes) or not (No).\n"
-        "You should maintain a concise, scholarly, and assertive tone focused on evidence-based analysis.\n"
-        "Structure your output as follows:\n"
-        "<thinking>[THINKING]</thinking>\n"
-        "Answer: [Yes|No]\n"
-        "The automated system only reads the final line, so focus on strictly formatting your final answer."
+        "You should maintain a concise, scholarly, and assertive tone focused on evidence-based analysis.\n\n"
+        "CRITICAL INSTRUCTION: You MUST think step-by-step FIRST inside <thinking> tags. Only AFTER you finish your reasoning, "
+        "output your final decision on the very last line.\n\n"
+        "REQUIRED FORMAT:\n"
+        "<thinking>\n"
+        "1. Analysis: ...\n"
+        "</thinking>\n"
+        "Answer: [Yes/No]"
     )
 
     user_prompt = f"""Here is the NLM Indexing manual for your reference:
@@ -78,7 +80,7 @@ Candidate tag to evaluate:
 {candidate_tag}
 </candidate_tag>
 
-Briefly think step by step about whether the candidate tag correctly describes the article. Keep your thinking concise and focused. Put your reasoning inside <thinking></thinking> tags. Then, on a new line, give your final answer formatted exactly as \"Answer: Yes\" or \"Answer: No\"."""
+Based on the abstract, does the candidate tag belong? Follow the REQUIRED FORMAT exactly."""
 
     return [
         {"role": "system", "content": system_prompt},
@@ -95,9 +97,10 @@ def parse_output(generation_text, pmid, stage_name, verbose=False):
         print(f"      >>> RAW GENERATED TEXT FROM MODEL:\n\"\"\"\n{cleaned_text}\n\"\"\"")
         print(f"      " + "-"*50)
     
-    match = re.search(r"Answer:\s*(Yes|No)", cleaned_text, re.IGNORECASE)
-    if match:
-        result = match.group(1).capitalize()
+    # Tier 1: Search for all "Answer: Yes/No" patterns and take the LAST one
+    matches = re.findall(r"Answer:\s*(Yes|No)", cleaned_text, re.IGNORECASE)
+    if matches: 
+        result = matches[-1].capitalize()
         if verbose: print(f"      [TIER 1 MATCH]: Found pattern 'Answer: {result}'")
         return result
         
@@ -157,23 +160,38 @@ def run_evaluation(article, stage_name, tokenizer, model, manual_text, verbose=F
         return None
         
     messages = build_messages(abstract, assigned_tags, candidate_tag, manual_text)
-    text_input = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-    model_inputs = tokenizer([text_input], return_tensors="pt").to(model.device)
     
-    generated_ids = model.generate(
-        **model_inputs,
-        max_new_tokens=512, 
-        temperature=0.2, 
-        do_sample=True,
-        pad_token_id=tokenizer.eos_token_id
-    )
+    # Retry Logic: Up to 3 attempts
+    prediction = "Unknown"
+    response = ""
     
-    generated_ids = [
-        output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
-    ]
-    response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
-    
-    prediction = parse_output(response, pmid, stage_name, verbose=verbose)
+    for attempt in range(3):
+        # Slightly increase temperature on retry to force a different format
+        temp = 0.2 if attempt == 0 else 0.4
+        
+        text_input = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+        model_inputs = tokenizer([text_input], return_tensors="pt").to(model.device)
+        
+        generated_ids = model.generate(
+            **model_inputs,
+            max_new_tokens=512, 
+            temperature=temp, 
+            do_sample=True,
+            pad_token_id=tokenizer.eos_token_id
+        )
+        
+        generated_ids = [
+            output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
+        ]
+        response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
+        
+        prediction = parse_output(response, pmid, stage_name, verbose=verbose)
+        
+        if prediction != "Unknown":
+            break
+        else:
+            print(f"      -> [RETRY] Output was Unknown. Retrying (Attempt {attempt+1}/3)...")
+            
     is_correct = (prediction == ground_truth)
     
     return {
@@ -191,17 +209,14 @@ def main():
 
     # Determine GPU availability
     if not torch.cuda.is_available():
-        print("CRITICAL ERROR: PyTorch cannot find a GPU! Your job will take 500x longer on a CPU.")
-        print("Please check your SLURM script, CUDA modules, or PyTorch installation.")
-        sys.exit(1) # Stop the script immediately so we don't waste 1 hour computing on a CPU
+        print("CRITICAL ERROR: PyTorch cannot find a GPU!")
+        sys.exit(1) 
 
     dataset, manual_text = load_resources()
     
-    # --- CHUNKING LOGIC FOR PARALLEL EXECUTION ---
     if args.total_chunks > 1:
         chunk_size = len(dataset) // args.total_chunks
         start_idx = args.chunk_id * chunk_size
-        # The last chunk takes any remaining articles
         end_idx = start_idx + chunk_size if args.chunk_id < args.total_chunks - 1 else len(dataset)
         dataset = dataset[start_idx:end_idx]
         output_file = f"{BASE_OUTPUT_PATH}_chunk{args.chunk_id}.json"
@@ -213,7 +228,6 @@ def main():
         dataset = dataset[:5]
         output_file = "test_" + output_file
         
-    # --- CRASH-PROOF RESUME LOGIC ---
     completed_evals = set()
     results = []
     
@@ -234,15 +248,12 @@ def main():
     auth_kwargs = {"token": HF_TOKEN} if HF_TOKEN else {}
     tokenizer = AutoTokenizer.from_pretrained(MODEL_ID, **auth_kwargs)
     
-    # We explicitly force the device mapping to "cuda"
     model = AutoModelForCausalLM.from_pretrained(
         MODEL_ID,
         torch_dtype=torch.float16,
         device_map="cuda", 
         **auth_kwargs
     )
-    
-    print(f"\n[SUCCESS] Model loaded successfully on: {model.device}\n")
     
     stages = [
         ("Round 1: True Tag", "EVALUATING POSITIVE CASES (Expected: Yes)"),
@@ -299,7 +310,6 @@ def main():
 
                 with open(output_file, "w", encoding="utf-8") as f:
                     json.dump(output_data, f, indent=4, ensure_ascii=False)
-                # -------------------------------
 
     print(f"\n======================================================")
     print(f"CHUNK {args.chunk_id} EXPERIMENT COMPLETE")
