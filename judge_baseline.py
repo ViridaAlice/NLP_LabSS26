@@ -5,6 +5,7 @@ import torch
 import os
 import sys
 import argparse
+import tempfile
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 # ==============================================================================
@@ -204,6 +205,19 @@ def run_evaluation(article, stage_name, tokenizer, model, manual_text, verbose=F
         "full_model_output": response
     }
 
+def save_results_atomically(file_path, data):
+    """Writes data to a temporary file first, then atomically renames it to prevent corruption."""
+    dir_name = os.path.dirname(file_path) or "."
+    with tempfile.NamedTemporaryFile('w', dir=dir_name, delete=False, encoding='utf-8') as tf:
+        json.dump(data, tf, indent=4, ensure_ascii=False)
+        temp_name = tf.name
+    try:
+        os.replace(temp_name, file_path)
+    except Exception as e:
+        if os.path.exists(temp_name):
+            os.remove(temp_name)
+        raise e
+
 def main():
     args = parse_args()
 
@@ -231,6 +245,7 @@ def main():
     completed_evals = set()
     results = []
     
+    # CRASH-PROOF LOAD: Load existing uncorrupted files or skip safely
     if os.path.exists(output_file):
         print(f"\n[RESUME] Found existing save file at {output_file}.")
         try:
@@ -241,6 +256,7 @@ def main():
                     completed_evals.add((r["stage"], r["pmid"]))
             print(f" -> Fast-forwarding {len(results)} previous evaluations.")
         except json.JSONDecodeError:
+            print(" -> [WARNING] Existing file was corrupted. Restarting from scratch.")
             pass
 
     print(f"\nLoading {MODEL_ID} into memory...")
@@ -280,7 +296,7 @@ def main():
                 status_icon = '✅' if result['is_correct'] else '❌'
                 print(f"[{i+1}/{len(dataset)}] PMID: {pmid} | Target: {result['ground_truth']:3s} | Pred: {result['model_prediction']:3s} -> {status_icon}")
                 
-                # --- INCREMENTAL SAVE LOGIC ---
+                # --- INCREMENTAL SAVE LOGIC (ATOMIC) ---
                 summary_stats = {}
                 for r in results:
                     sn = r["stage"]
@@ -308,8 +324,8 @@ def main():
                     "results": results
                 }
 
-                with open(output_file, "w", encoding="utf-8") as f:
-                    json.dump(output_data, f, indent=4, ensure_ascii=False)
+                # Safe atomic write to disk
+                save_results_atomically(output_file, output_data)
 
     print(f"\n======================================================")
     print(f"CHUNK {args.chunk_id} EXPERIMENT COMPLETE")

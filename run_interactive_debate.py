@@ -5,6 +5,7 @@ import torch
 import os
 import sys
 import argparse
+import tempfile
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 # ==============================================================================
@@ -12,7 +13,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 # ==============================================================================
 HF_TOKEN = os.environ.get("HF_TOKEN")
 
-JUDGE_MODEL_ID = "./Qwen3.5-0.5B"  
+JUDGE_MODEL_ID = "./Qwen3.5-0.8B"   # Aligned to your 0.8B Judge Selection
 DEBATER_MODEL_ID = "./Qwen3.5-2B"  
 DATASET_PATH = "pubmed_xmlc_dataset.json" 
 MANUAL_PATH = "NLM_Indexing_manual.txt"
@@ -181,6 +182,19 @@ def generate_text(messages, model, tokenizer, max_tokens=256, temperature=0.2):
     generated_ids = [output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)]
     return tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0].strip()
 
+def save_results_atomically(file_path, data):
+    """Writes data to a temporary file first, then atomically renames it to prevent corruption."""
+    dir_name = os.path.dirname(file_path) or "."
+    with tempfile.NamedTemporaryFile('w', dir=dir_name, delete=False, encoding='utf-8') as tf:
+        json.dump(data, tf, indent=4, ensure_ascii=False)
+        temp_name = tf.name
+    try:
+        os.replace(temp_name, file_path)
+    except Exception as e:
+        if os.path.exists(temp_name):
+            os.remove(temp_name)
+        raise e
+
 # ----------------- MAIN LOGIC -----------------
 
 def main():
@@ -210,13 +224,18 @@ def main():
     completed_evals = set()
     results = []
     
+    # CRASH-PROOF LOAD
     if os.path.exists(output_file):
+        print(f"\n[RESUME] Found existing save file at {output_file}.")
         try:
             with open(output_file, "r", encoding="utf-8") as f:
                 saved_data = json.load(f)
                 results = saved_data.get("results", [])
                 for r in results: completed_evals.add((r["stage"], r["pmid"]))
-        except json.JSONDecodeError: pass
+            print(f" -> Fast-forwarding {len(results)} previous evaluations.")
+        except json.JSONDecodeError: 
+            print(" -> [WARNING] Existing file was corrupted. Restarting from scratch.")
+            pass
 
     print(f"\nLoading Debater Model ({DEBATER_MODEL_ID})...")
     debater_tokenizer = AutoTokenizer.from_pretrained(DEBATER_MODEL_ID)
@@ -304,10 +323,16 @@ def main():
             })
             completed_evals.add((stage_name, pmid))
 
+            # Atomic save on every step
             total_evals = len(results)
             total_correct = sum(1 for r in results if r["is_correct"])
-            with open(output_file, "w", encoding="utf-8") as f:
-                json.dump({"metadata": {"overall_accuracy": (total_correct / total_evals) * 100}, "results": results}, f, indent=4)
+            output_data = {
+                "metadata": {
+                    "overall_accuracy": (total_correct / total_evals) * 100 if total_evals > 0 else 0
+                }, 
+                "results": results
+            }
+            save_results_atomically(output_file, output_data)
 
     print(f"\nCHUNK {args.chunk_id} EXPERIMENT COMPLETE\n")
 
