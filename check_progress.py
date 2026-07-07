@@ -1,307 +1,377 @@
 #!/usr/bin/env python3
 """
-check_progress.py -- Progress checker for the AI-Debate XMLC evaluations.
+check_progress.py
 
-READ-ONLY. This script NEVER launches, re-runs, merges, or modifies anything.
-It ONLY inspects the result files produced by the SLURM .sh jobs
-(*_chunk*.json, *_full.json, *_rejudge2B.json) and reports, per evaluation:
+READ-ONLY progress checker for the AI-Debate XMLC evaluations.
 
-  * which chunks exist / are missing            -> gap detection
-  * records per chunk, broken down by STAGE      -> progress
-  * whether a chunk looks COMPLETE or was cut off -> "needs rerun?"
-  * whether chunks overlap (same pmid in >1 chunk)-> overlap check
-  * whether a file is corrupt / half-written      -> crash check
-  * status of the rejudge stage + its _full.json dependency
+It NEVER launches or re-runs anything. It only inspects the output files
+produced by the SLURM jobs (the *_chunk<N>.json files) and reports, per
+evaluation, how far along each chunk is and whether it must be (re-)run.
 
-How "complete" is decided from OUTPUT FILES ALONE
-------------------------------------------------
-The workers loop stage-OUTER, article-INNER over 3 STAGES:
-    Round 1: True Tag / Round 2: Unrelated Tag / Round 3: Similar Tag
-Every article with mesh_tags yields exactly ONE record per stage, and articles
-without mesh_tags are skipped identically in all stages. Therefore a FINISHED
-chunk has all 3 stages present with EQUAL counts. An interrupted chunk shows
-fewer than 3 stages, or unequal stage counts. In addition, every non-last chunk
-should be as large as the biggest chunk (ceiling-division slicing); a short
-non-last chunk was cut off. These are the only reliable signals available
-without the dataset, so results are reported as heuristics.
+For every evaluation that is INCOMPLETE it now also prints the exact
+sbatch command needed to resume it. Because every debate_*.py script is
+resumable (U.load_checkpoint fast-forwards finished (stage, pmid) records
+and U.save_results_atomically writes atomically), simply re-submitting the
+job continues where it stopped -- no finished work is repeated.
 
 Usage:
-    python check_progress.py [DIR]        # DIR defaults to the current directory
-    python check_progress.py . --chunks 4 # force expected chunk count
+    python3 check_progress.py [directory]     # default: current dir
 """
 
 import os
 import re
 import sys
 import json
-import argparse
-from collections import defaultdict, Counter
+import glob
+from collections import defaultdict
 
-# Stages defined in debate_utils.STAGES
-EXPECTED_STAGES = [
+# --------------------------------------------------------------------------- #
+# CONFIG -- adjust here if you rename things
+# --------------------------------------------------------------------------- #
+
+# The three rounds defined in debate_utils.STAGES (order matters: R1, R2, R3).
+STAGE_NAMES = [
     "Round 1: True Tag",
     "Round 2: Unrelated Tag",
     "Round 3: Similar Tag",
 ]
-N_STAGES = len(EXPECTED_STAGES)
 
-CHUNK_RE = re.compile(r"^(?P<base>.+?)_chunk(?P<idx>\d+)\.json$")
-FULL_RE = re.compile(r"^(?P<base>.+?)_full\.json$")
-REJUDGE_RE = re.compile(r"^(?P<stem>.+?)_rejudge2B\.json$")
+# Map an evaluation base name -> (submit script, number of array chunks).
+# These are YOUR five pipelines. Anything not in here (e.g. the pydantic_*
+# files, which come from a different script set) gets no auto-command.
+SUBMIT_MAP = {
+    "baseline_withmanual_results": ("submit_baseline.sh", 4),
+    "baseline_nomanual_results":   ("submit_baseline_nomanual.sh", 4),
+    "interactive_results":         ("submit_interactive.sh", 4),
+    "statement_results":           ("submit_statement.sh", 4),
+}
+
+# Rejudge (2B) stage: reads *_full.json produced by merging the chunks.
+REJUDGE_SUBMIT = "submit_rejudge.sh"
+REJUDGE_TASKS = {          # array task id -> (mode, source base name)
+    0: "interactive_results",
+    1: "statement_results",
+}
+MERGE_HELPER = "merge_chunks.py"
+
+CHUNK_RE = re.compile(r"^(.*)_chunk(\d+)\.json$")
 
 
-def load_json_safe(path):
-    """Return (data, error). error is None on success."""
+# --------------------------------------------------------------------------- #
+# Loading / counting
+# --------------------------------------------------------------------------- #
+def discover_chunks(directory):
+    """Return {base_name: {chunk_id: filepath}}."""
+    groups = defaultdict(dict)
+    for path in glob.glob(os.path.join(directory, "*_chunk*.json")):
+        name = os.path.basename(path)
+        m = CHUNK_RE.match(name)
+        if not m:
+            continue
+        base, cid = m.group(1), int(m.group(2))
+        groups[base][cid] = path
+    return groups
+
+
+def load_chunk(path):
+    """Return (records_list, corrupt_bool). Corrupt = interrupted mid-write."""
     try:
         with open(path, "r", encoding="utf-8") as f:
-            return json.load(f), None
-    except json.JSONDecodeError as e:
-        return None, f"CORRUPT JSON ({e})"
-    except OSError as e:
-        return None, f"UNREADABLE ({e})"
+            data = json.load(f)
+        return data.get("results", []), False
+    except (json.JSONDecodeError, OSError):
+        return [], True
 
 
-def summarize_records(records):
-    """Return (per_stage_counts, pmid_set, dup_stage_pmid_count)."""
-    per_stage = Counter()
-    pmids = set()
-    seen = set()
-    dups = 0
+def stage_counts(records):
+    """Count records per stage -> [R1, R2, R3]."""
+    counts = {s: 0 for s in STAGE_NAMES}
     for r in records:
-        stage = r.get("stage")
-        pmid = r.get("pmid")
-        per_stage[stage] += 1
-        pmids.add(pmid)
-        key = (stage, pmid)
-        if key in seen:
-            dups += 1
-        seen.add(key)
-    return per_stage, pmids, dups
+        s = r.get("stage")
+        if s in counts:
+            counts[s] += 1
+    return [counts[s] for s in STAGE_NAMES]
 
 
-def scan(directory):
-    files = sorted(os.listdir(directory))
-    chunked = defaultdict(dict)   # base -> {idx: filename}
-    full = {}                     # base -> filename
-    rejudge = {}                  # stem -> filename
-    for fn in files:
-        m = CHUNK_RE.match(fn)
-        if m:
-            chunked[m.group("base")][int(m.group("idx"))] = fn
-            continue
-        m = REJUDGE_RE.match(fn)
-        if m:
-            rejudge[m.group("stem")] = fn
-            continue
-        m = FULL_RE.match(fn)
-        if m:
-            full[m.group("base")] = fn
-    return chunked, full, rejudge
+def record_keys(records):
+    """Set of (stage, pmid) for overlap detection."""
+    return {(r.get("stage"), r.get("pmid")) for r in records}
 
 
-def analyze_chunked(directory, base, idx_to_file, forced_chunks):
-    indices = sorted(idx_to_file)
-    max_idx = max(indices)
-    expected_n = forced_chunks - 1 if forced_chunks else max_idx
-    expected = list(range(expected_n + 1))
-    missing = [i for i in expected if i not in idx_to_file]
-
-    per_chunk = {}          # idx -> dict
-    all_pmids = {}          # idx -> set
-    problems = []
-
-    for i in indices:
-        path = os.path.join(directory, idx_to_file[i])
-        data, err = load_json_safe(path)
-        if err:
-            per_chunk[i] = {"error": err}
-            problems.append(f"chunk{i}: {err} -> RERUN")
-            continue
-        records = data.get("results", []) if isinstance(data, dict) else []
-        stages, pmids, dups = summarize_records(records)
-        all_pmids[i] = pmids
-        per_chunk[i] = {
+# --------------------------------------------------------------------------- #
+# Per-evaluation analysis
+# --------------------------------------------------------------------------- #
+def analyse_group(base, chunkmap):
+    """Return a dict describing one evaluation."""
+    chunks = {}
+    all_keys_per_chunk = {}
+    for cid, path in sorted(chunkmap.items()):
+        records, corrupt = load_chunk(path)
+        counts = stage_counts(records)
+        chunks[cid] = {
             "records": len(records),
-            "stages": stages,
-            "n_stages": len([s for s in stages if s in EXPECTED_STAGES]),
-            "dups": dups,
-            "meta": data.get("metadata", {}) if isinstance(data, dict) else {},
+            "counts": counts,
+            "corrupt": corrupt,
         }
-        if dups:
-            problems.append(f"chunk{i}: {dups} duplicate (stage,pmid) records")
+        all_keys_per_chunk[cid] = record_keys(records)
 
-    # biggest per-stage count = size of a full chunk
-    full_stage_n = 0
-    for i, info in per_chunk.items():
-        if "error" in info:
-            continue
-        if info["stages"]:
-            full_stage_n = max(full_stage_n, max(info["stages"].values()))
+    # Expected full-chunk stage size = max R1 seen across chunks.
+    full_stage = max((c["counts"][0] for c in chunks.values()), default=0)
 
-    # completeness per chunk
-    for i in indices:
-        info = per_chunk[i]
-        if "error" in info:
-            info["status"] = "CORRUPT"
-            continue
-        counts = [info["stages"].get(s, 0) for s in EXPECTED_STAGES]
-        present = info["n_stages"]
-        is_last = (i == max_idx)
-        balanced = present == N_STAGES and len(set(counts)) == 1 and counts[0] > 0
-        full_size = is_last or (counts and max(counts) >= full_stage_n)
-        if balanced and full_size:
-            info["status"] = "COMPLETE"
-        elif balanced and not full_size:
-            info["status"] = "SHORT?"   # balanced but smaller than siblings
-            problems.append(
-                f"chunk{i}: balanced but only {counts[0]}/{full_stage_n} "
-                f"per stage -> likely cut off, RERUN")
-        else:
-            info["status"] = "PARTIAL"
-            problems.append(
-                f"chunk{i}: stages present={present}/{N_STAGES}, "
-                f"counts={counts} -> interrupted, RERUN")
+    # Complete = all three stages equal & > 0 (and not corrupt).
+    for cid, c in chunks.items():
+        r1, r2, r3 = c["counts"]
+        c["complete"] = (not c["corrupt"]) and r1 > 0 and r1 == r2 == r3
+        c["stages_present"] = sum(1 for x in c["counts"] if x > 0)
 
-    for i in missing:
-        problems.append(f"chunk{i}: MISSING -> RERUN")
+    # Overlap detection: same (stage, pmid) in two different chunks.
+    overlaps = []
+    cids = sorted(chunks)
+    for a in range(len(cids)):
+        for b in range(a + 1, len(cids)):
+            inter = all_keys_per_chunk[cids[a]] & all_keys_per_chunk[cids[b]]
+            if inter:
+                overlaps.append((cids[a], cids[b], len(inter)))
 
-    # overlap check across chunks
-    idxs = sorted(all_pmids)
-    for a in range(len(idxs)):
-        for b in range(a + 1, len(idxs)):
-            ia, ib = idxs[a], idxs[b]
-            common = all_pmids[ia] & all_pmids[ib]
-            if common:
-                sample = list(common)[:5]
-                problems.append(
-                    f"OVERLAP chunk{ia} & chunk{ib}: {len(common)} shared "
-                    f"pmids e.g. {sample}")
+    # Gaps: expected chunk ids from the submit map (0..total-1).
+    expected_total = SUBMIT_MAP.get(base, (None, None))[1]
+    missing = []
+    if expected_total:
+        missing = [i for i in range(expected_total) if i not in chunks]
 
     return {
-        "expected": expected,
+        "base": base,
+        "chunks": chunks,
+        "full_stage": full_stage,
+        "overlaps": overlaps,
         "missing": missing,
-        "per_chunk": per_chunk,
-        "full_stage_n": full_stage_n,
-        "problems": problems,
+        "expected_total": expected_total,
     }
 
 
-def print_eval(base, res):
-    print("=" * 72)
-    print(f"EVALUATION: {base}")
-    print("-" * 72)
-    header = f"{'chunk':<6}{'records':<9}{'R1':<7}{'R2':<7}{'R3':<7}{'status':<10}"
-    print(header)
-    for i in res["expected"]:
-        info = res["per_chunk"].get(i)
-        if info is None:
-            print(f"{i:<6}{'-':<9}{'-':<7}{'-':<7}{'-':<7}{'MISSING':<10}")
-            continue
-        if "error" in info:
-            print(f"{i:<6}{'-':<9}{'-':<7}{'-':<7}{'-':<7}{'CORRUPT':<10}")
-            continue
-        s = info["stages"]
-        print(f"{i:<6}{info['records']:<9}"
-              f"{s.get(EXPECTED_STAGES[0],0):<7}"
-              f"{s.get(EXPECTED_STAGES[1],0):<7}"
-              f"{s.get(EXPECTED_STAGES[2],0):<7}"
-              f"{info['status']:<10}")
+def rerun_command(base, info):
+    """Build the resumable sbatch command for a failed evaluation, or None."""
+    if base not in SUBMIT_MAP:
+        return None
+    submit, total = SUBMIT_MAP[base]
+    failed = sorted(
+        cid for cid, c in info["chunks"].items() if not c["complete"]
+    )
+    failed = sorted(set(failed) | set(info["missing"]))
+    if not failed:
+        return None
+    if len(failed) == total and failed == list(range(total)):
+        return "sbatch %s" % submit
+    ids = ",".join(str(i) for i in failed)
+    return "sbatch --array=%s %s" % (ids, submit)
 
-    done = sum(1 for i in res["expected"]
-               if res["per_chunk"].get(i, {}).get("status") == "COMPLETE")
-    total = len(res["expected"])
+
+# --------------------------------------------------------------------------- #
+# Reporting
+# --------------------------------------------------------------------------- #
+def print_group(info):
+    base = info["base"]
+    chunks = info["chunks"]
+    print("\n" + "=" * 72)
+    print("EVALUATION: %s" % base)
     print("-" * 72)
-    print(f"  chunks complete: {done}/{total}"
-          f"   (full-chunk stage size ~= {res['full_stage_n']})")
-    if res["problems"]:
+    print("%-6s%-9s%-7s%-7s%-7s%-10s"
+          % ("chunk", "records", "R1", "R2", "R3", "status"))
+    complete = 0
+    for cid in sorted(chunks):
+        c = chunks[cid]
+        if c["corrupt"]:
+            status = "CORRUPT"
+        elif c["complete"]:
+            status = "COMPLETE"
+            complete += 1
+        else:
+            status = "PARTIAL"
+        r1, r2, r3 = c["counts"]
+        print("%-6s%-9s%-7s%-7s%-7s%-10s"
+              % (cid, c["records"], r1, r2, r3, status))
+    print("-" * 72)
+    total = info["expected_total"] or len(chunks)
+    print("  chunks complete: %d/%d   (full-chunk stage size ~= %d)"
+          % (complete, total, info["full_stage"]))
+
+    problems = False
+
+    # Missing chunk files
+    if info["missing"]:
+        problems = True
         print("  ACTION NEEDED:")
-        for p in res["problems"]:
-            print(f"    - {p}")
+        print("    - missing chunk file(s): %s"
+              % ", ".join("chunk%d" % i for i in info["missing"]))
+
+    # Overlaps
+    if info["overlaps"]:
+        problems = True
+        if not info["missing"]:
+            print("  ACTION NEEDED:")
+        for a, b, n in info["overlaps"]:
+            print("    - OVERLAP: chunk%d and chunk%d share %d (stage,pmid) keys"
+                  % (a, b, n))
+
+    # Incomplete / corrupt chunks
+    incomplete = [(cid, c) for cid, c in sorted(chunks.items())
+                  if not c["complete"]]
+    if incomplete:
+        if not (info["missing"] or info["overlaps"]):
+            print("  ACTION NEEDED:")
+        problems = True
+        for cid, c in incomplete:
+            reason = "CORRUPT -> file truncated mid-write" if c["corrupt"] \
+                else "interrupted, RERUN"
+            print("    - chunk%d: stages present=%d/3, counts=%s -> %s"
+                  % (cid, c["stages_present"], c["counts"], reason))
+
+    if problems:
+        cmd = rerun_command(base, info)
+        if cmd:
+            print("    >> RERUN (resumable, finished records are skipped):")
+            print("       %s" % cmd)
+        else:
+            print("    >> No submit script mapped for '%s'." % base)
+            print("       (Not one of your five pipelines -- e.g. pydantic_* "
+                  "comes from a different script set.)")
     else:
-        print("  OK: no gaps, no overlaps, all chunks complete. No rerun needed.")
-    print()
-    return done == total and not res["problems"]
+        print("  OK: no gaps, no overlaps, all chunks complete. "
+              "No rerun needed.")
+
+    return not problems
 
 
-def main():
-    ap = argparse.ArgumentParser(description="Read-only progress checker.")
-    ap.add_argument("directory", nargs="?", default=".",
-                    help="Directory with the result JSON files (default: .)")
-    ap.add_argument("--chunks", type=int, default=None,
-                    help="Force expected total chunks per eval (e.g. 4).")
-    args = ap.parse_args()
-
-    directory = args.directory
-    if not os.path.isdir(directory):
-        sys.exit(f"Not a directory: {directory}")
-
-    chunked, full, rejudge = scan(directory)
-
-    if not chunked and not full and not rejudge:
-        print("No result files (*_chunk*.json / *_full.json / *_rejudge2B.json) found.")
-        return
-
-    print(f"Scanning: {os.path.abspath(directory)}\n")
-
-    all_ok = True
-    finished_bases = set()
-    for base in sorted(chunked):
-        res = analyze_chunked(directory, base, chunked[base], args.chunks)
-        ok = print_eval(base, res)
-        all_ok = all_ok and ok
-        if ok:
-            finished_bases.add(base)
-
-    # ---- Rejudge stage (depends on *_full.json produced by merging chunks) ----
-    print("=" * 72)
+def print_rejudge(directory, groups):
+    print("\n" + "=" * 72)
     print("REJUDGE (2B) STAGE")
     print("-" * 72)
-    for mode, base in (("interactive", "interactive_results"),
-                       ("statement", "statement_results")):
-        full_name = f"{base}_full.json"
-        out_name = f"{base}_full_rejudge2B.json"
-        has_full = os.path.exists(os.path.join(directory, full_name))
-        out_stem = f"{base}_full"
-        has_out = out_stem in rejudge
+    for task_id, base in REJUDGE_TASKS.items():
+        mode = "interactive" if base.startswith("interactive") else "statement"
+        full_path = os.path.join(directory, "%s_full.json" % base)
+        rejudge_out = os.path.join(directory, "%s_full_rejudge2B.json" % base)
 
-        if has_out:
-            path = os.path.join(directory, rejudge[out_stem])
-            data, err = load_json_safe(path)
-            if err:
-                print(f"  {mode:<12}: output {rejudge[out_stem]} {err} -> RERUN")
-            else:
-                n = len(data.get("results", []))
-                src_n = None
-                if has_full:
-                    sd, _ = load_json_safe(os.path.join(directory, full_name))
-                    if isinstance(sd, dict):
-                        src_n = len(sd.get("results", []))
-                if src_n is not None:
-                    status = "COMPLETE" if n >= src_n else "PARTIAL -> RERUN"
-                    print(f"  {mode:<12}: {n}/{src_n} records  {status}")
-                else:
-                    print(f"  {mode:<12}: {n} records (source _full.json absent, "
-                          f"cannot verify completeness)")
-        elif has_full:
-            print(f"  {mode:<12}: source {full_name} present, but rejudge NOT "
-                  f"started -> run submit_rejudge.sh")
+        # Are the source chunks even complete?
+        src_complete = False
+        if base in groups:
+            info = analyse_group(base, groups[base])
+            src_complete = (not info["missing"]
+                            and all(c["complete"]
+                                    for c in info["chunks"].values()))
+
+        if os.path.exists(rejudge_out):
+            print("  %-11s: rejudge output already exists (%s)."
+                  % (mode, os.path.basename(rejudge_out)))
+            continue
+
+        if os.path.exists(full_path):
+            print("  %-11s: source ready. Run 2B rejudge:" % mode)
+            print("               sbatch --array=%d %s"
+                  % (task_id, REJUDGE_SUBMIT))
+            continue
+
+        # No _full.json yet -> blocked; needs merge (and maybe finish first).
+        print("  %-11s: BLOCKED - %s_full.json missing." % (mode, base))
+        if not src_complete:
+            print("               chunks INCOMPLETE -> first finish them, then merge.")
+            print("               1) sbatch %s"
+                  % SUBMIT_MAP.get(base, ("<submit>.sh", 0))[0])
+            print("               2) python3 %s %s" % (MERGE_HELPER, base))
+            print("               3) sbatch --array=%d %s"
+                  % (task_id, REJUDGE_SUBMIT))
         else:
-            merged = "READY" if base in finished_bases else "chunks INCOMPLETE"
-            print(f"  {mode:<12}: BLOCKED - {full_name} missing.")
-            print(f"               chunks are {merged}; you must MERGE the 4 "
-                  f"{base}_chunk*.json into {full_name} first,")
-            print(f"               otherwise submit_rejudge.sh crashes "
-                  f"(FileNotFoundError).")
-            all_ok = False
-    print()
+            print("               chunks complete -> just merge, then rejudge:")
+            print("               1) python3 %s %s" % (MERGE_HELPER, base))
+            print("               2) sbatch --array=%d %s"
+                  % (task_id, REJUDGE_SUBMIT))
 
-    print("=" * 72)
-    if all_ok:
-        print("SUMMARY: all chunked evaluations complete, no overlaps/corruption. "
-              "Only the rejudge stage may still need attention (see above).")
+
+def print_command_block(directory, groups, results):
+    """Consolidated, copy-paste command list in dependency order."""
+    lines = []
+
+    # Stage 1: resume any incomplete chunked pipeline.
+    for base in SUBMIT_MAP:
+        if base not in groups:
+            continue
+        info = analyse_group(base, groups[base])
+        cmd = rerun_command(base, info)
+        if cmd:
+            lines.append(cmd)
+
+    if not lines:
+        # nothing to resume; maybe only rejudge/merge pending
+        needs_rejudge = []
+        for task_id, base in REJUDGE_TASKS.items():
+            full_path = os.path.join(directory, "%s_full.json" % base)
+            rejudge_out = os.path.join(directory,
+                                       "%s_full_rejudge2B.json" % base)
+            if not os.path.exists(rejudge_out):
+                needs_rejudge.append((task_id, base,
+                                      os.path.exists(full_path)))
+        if not needs_rejudge:
+            return
+
+    print("\n" + "=" * 72)
+    print("COMMANDS TO RUN (dependency order)")
+    print("-" * 72)
+
+    if lines:
+        print("# 1) Resume/complete the chunked pipelines (safe & resumable):")
+        for c in lines:
+            print("   %s" % c)
+
+    # Stage 2/3: merge + rejudge, only for the two rejudge sources.
+    merge_needed = []
+    rejudge_needed = []
+    for task_id, base in REJUDGE_TASKS.items():
+        full_path = os.path.join(directory, "%s_full.json" % base)
+        rejudge_out = os.path.join(directory, "%s_full_rejudge2B.json" % base)
+        if os.path.exists(rejudge_out):
+            continue
+        if not os.path.exists(full_path):
+            merge_needed.append(base)
+        rejudge_needed.append(task_id)
+
+    if merge_needed:
+        print("# 2) AFTER those finish, merge chunks into *_full.json:")
+        for base in merge_needed:
+            print("   python3 %s %s" % (MERGE_HELPER, base))
+    if rejudge_needed:
+        print("# 3) Then run the 2B rejudge:")
+        ids = ",".join(str(i) for i in sorted(rejudge_needed))
+        print("   sbatch --array=%s %s" % (ids, REJUDGE_SUBMIT))
+
+
+# --------------------------------------------------------------------------- #
+# Main
+# --------------------------------------------------------------------------- #
+def main():
+    directory = sys.argv[1] if len(sys.argv) > 1 else os.getcwd()
+    directory = os.path.abspath(directory)
+    print("Scanning: %s" % directory)
+
+    groups = discover_chunks(directory)
+    if not groups:
+        print("No *_chunk*.json files found.")
+        return
+
+    results = {}
+    for base in sorted(groups):
+        info = analyse_group(base, groups[base])
+        ok = print_group(info)
+        results[base] = ok
+
+    print_rejudge(directory, groups)
+    print_command_block(directory, groups, results)
+
+    print("\n" + "=" * 72)
+    if all(results.values()):
+        print("SUMMARY: all discovered evaluations complete. "
+              "Only the merge + rejudge steps (if any) remain.")
     else:
-        print("SUMMARY: some evaluations need a rerun/merge - see 'ACTION NEEDED' "
-              "and 'REJUDGE' sections above.")
+        print("SUMMARY: some evaluations need a rerun/merge - see "
+              "'ACTION NEEDED', 'REJUDGE' and 'COMMANDS TO RUN' above.")
 
 
 if __name__ == "__main__":
