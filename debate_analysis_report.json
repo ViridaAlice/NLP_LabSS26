@@ -1,0 +1,395 @@
+{
+  "inventory": {
+    "present": [
+      "baseline_withmanual",
+      "baseline_nomanual",
+      "statement",
+      "statement_rejudge2B",
+      "interactive",
+      "interactive_rejudge2B",
+      "pydantic_interactive"
+    ],
+    "missing": []
+  },
+  "per_dataset": {
+    "baseline_withmanual": {
+      "accuracy": {
+        "ALL": [
+          3000,
+          2405,
+          80.16666666666667
+        ],
+        "Round 1: True Tag": [
+          1000,
+          646,
+          64.6
+        ],
+        "Round 2: Unrelated Tag": [
+          1000,
+          928,
+          92.8
+        ],
+        "Round 3: Similar Tag": [
+          1000,
+          831,
+          83.1
+        ]
+      },
+      "verdict_bias": {
+        "Yes": 887,
+        "No": 2113
+      }
+    },
+    "baseline_nomanual": {
+      "accuracy": {
+        "ALL": [
+          3000,
+          2500,
+          83.33333333333333
+        ],
+        "Round 1: True Tag": [
+          1000,
+          769,
+          76.9
+        ],
+        "Round 2: Unrelated Tag": [
+          1000,
+          912,
+          91.2
+        ],
+        "Round 3: Similar Tag": [
+          1000,
+          819,
+          81.9
+        ]
+      },
+      "verdict_bias": {
+        "Yes": 1038,
+        "No": 1962
+      }
+    },
+    "statement": {
+      "accuracy": {
+        "ALL": [
+          3000,
+          1970,
+          65.66666666666667
+        ],
+        "Round 1: True Tag": [
+          1000,
+          720,
+          72.0
+        ],
+        "Round 2: Unrelated Tag": [
+          1000,
+          627,
+          62.7
+        ],
+        "Round 3: Similar Tag": [
+          1000,
+          623,
+          62.3
+        ]
+      },
+      "verdict_bias": {
+        "Yes": 1470,
+        "No": 1530
+      }
+    },
+    "statement_rejudge2B": {
+      "accuracy": {
+        "ALL": [
+          678,
+          537,
+          79.20353982300885
+        ],
+        "Round 1: True Tag": [
+          250,
+          139,
+          55.6
+        ],
+        "Round 2: Unrelated Tag": [
+          250,
+          231,
+          92.4
+        ],
+        "Round 3: Similar Tag": [
+          178,
+          167,
+          93.82022471910112
+        ]
+      },
+      "verdict_bias": {
+        "Yes": 169,
+        "No": 509
+      }
+    },
+    "interactive": {
+      "accuracy": {
+        "ALL": [
+          6000,
+          3291,
+          54.85
+        ],
+        "Round 1: True Tag": [
+          2000,
+          1554,
+          77.7
+        ],
+        "Round 2: Unrelated Tag": [
+          2000,
+          913,
+          45.65
+        ],
+        "Round 3: Similar Tag": [
+          2000,
+          824,
+          41.2
+        ]
+      },
+      "verdict_bias": {
+        "Yes": 3817,
+        "No": 2183
+      }
+    },
+    "interactive_rejudge2B": {
+      "accuracy": {
+        "ALL": [
+          562,
+          397,
+          70.64056939501779
+        ],
+        "Round 1: True Tag": [
+          500,
+          348,
+          69.6
+        ],
+        "Round 2: Unrelated Tag": [
+          62,
+          49,
+          79.03225806451613
+        ]
+      },
+      "verdict_bias": {
+        "Yes": 361,
+        "No": 201
+      }
+    },
+    "pydantic_interactive": {
+      "accuracy": {
+        "ALL": [
+          3000,
+          2001,
+          66.7
+        ],
+        "Round 1: True Tag": [
+          1000,
+          652,
+          65.2
+        ],
+        "Round 2: Unrelated Tag": [
+          1000,
+          711,
+          71.1
+        ],
+        "Round 3: Similar Tag": [
+          1000,
+          638,
+          63.8
+        ]
+      },
+      "verdict_bias": {
+        "No": 1695,
+        "Yes": 1303,
+        "Unknown": 2
+      }
+    }
+  },
+  "Q1_confidence": {
+    "baseline_withmanual": {
+      "n_with_confidence": 3000,
+      "mean_verdict_logprob_margin_Yes_minus_No": 3.431484375,
+      "mean_prob_belongs(Yes)": 0.9675070326337918,
+      "mean_boolean_prob_true": 0.4797107892581511,
+      "mean_debater_prob_A_right": null,
+      "n_with_debater_framing": 0,
+      "verdict_vs_boolean_agreement_pct": 35.333333333333336
+    },
+    "baseline_nomanual": {
+      "n_with_confidence": 3000,
+      "mean_verdict_logprob_margin_Yes_minus_No": 3.1892174479166666,
+      "mean_prob_belongs(Yes)": 0.956873681518546,
+      "mean_boolean_prob_true": 0.6286884316573248,
+      "mean_debater_prob_A_right": null,
+      "n_with_debater_framing": 0,
+      "verdict_vs_boolean_agreement_pct": 97.0
+    },
+    "statement": {
+      "n_with_confidence": 3000,
+      "mean_verdict_logprob_margin_Yes_minus_No": 1.0264062468210857,
+      "mean_prob_belongs(Yes)": 0.7184101049632382,
+      "mean_boolean_prob_true": 0.4677817770811447,
+      "mean_debater_prob_A_right": 0.7602467856754028,
+      "n_with_debater_framing": 3000,
+      "verdict_vs_boolean_agreement_pct": 42.56666666666667
+    },
+    "statement_rejudge2B": {
+      "n_with_confidence": 678,
+      "mean_verdict_logprob_margin_Yes_minus_No": -1.561163348082596,
+      "mean_prob_belongs(Yes)": 0.21833946000903368,
+      "mean_boolean_prob_true": 0.2652719691758198,
+      "mean_debater_prob_A_right": 0.7145861161041606,
+      "n_with_debater_framing": 678,
+      "verdict_vs_boolean_agreement_pct": 90.26548672566372
+    },
+    "interactive": {
+      "n_with_confidence": 6000,
+      "mean_verdict_logprob_margin_Yes_minus_No": 0.38980468861262,
+      "mean_prob_belongs(Yes)": 0.5905815226368822,
+      "mean_boolean_prob_true": 0.6360025839799744,
+      "mean_debater_prob_A_right": 0.7066942519784316,
+      "n_with_debater_framing": 6000,
+      "verdict_vs_boolean_agreement_pct": 77.61666666666666
+    },
+    "interactive_rejudge2B": {
+      "n_with_confidence": 562,
+      "mean_verdict_logprob_margin_Yes_minus_No": -1.2609819839857652,
+      "mean_prob_belongs(Yes)": 0.24908545997425816,
+      "mean_boolean_prob_true": 0.2783672912602389,
+      "mean_debater_prob_A_right": 0.7610309309102209,
+      "n_with_debater_framing": 562,
+      "verdict_vs_boolean_agreement_pct": 95.90747330960853
+    },
+    "pydantic_interactive": {
+      "n_with_confidence": 0,
+      "mean_verdict_logprob_margin_Yes_minus_No": null,
+      "mean_prob_belongs(Yes)": null,
+      "mean_boolean_prob_true": null,
+      "mean_debater_prob_A_right": null,
+      "n_with_debater_framing": 0,
+      "verdict_vs_boolean_agreement_pct": null
+    }
+  },
+  "Q2_order": {
+    "interactive": {
+      "acc_ABA_pct": 55.36666666666667,
+      "acc_BAB_pct": 54.333333333333336,
+      "order_flip_pct": 38.233333333333334,
+      "both_correct": 1072,
+      "only_ABA_correct": 589,
+      "only_BAB_correct": 558,
+      "both_wrong": 781,
+      "metadata_order_flip_rate": 38.0
+    },
+    "interactive_rejudge2B": {
+      "acc_ABA_pct": 69.3950177935943,
+      "acc_BAB_pct": 71.88612099644128,
+      "order_flip_pct": 29.537366548042705,
+      "both_correct": 157,
+      "only_ABA_correct": 38,
+      "only_BAB_correct": 45,
+      "both_wrong": 41,
+      "metadata_order_flip_rate": null
+    }
+  },
+  "Q3_unknown": {
+    "baseline_withmanual": {
+      "n_views": 3000,
+      "n_fallback": 0,
+      "invalid_predictions": {}
+    },
+    "baseline_nomanual": {
+      "n_views": 3000,
+      "n_fallback": 0,
+      "invalid_predictions": {}
+    },
+    "statement": {
+      "n_views": 3000,
+      "n_fallback": 896,
+      "invalid_predictions": {}
+    },
+    "statement_rejudge2B": {
+      "n_views": 678,
+      "n_fallback": 0,
+      "invalid_predictions": {}
+    },
+    "interactive": {
+      "n_views": 6000,
+      "n_fallback": 4174,
+      "invalid_predictions": {}
+    },
+    "interactive_rejudge2B": {
+      "n_views": 562,
+      "n_fallback": 0,
+      "invalid_predictions": {}
+    },
+    "pydantic_interactive": {
+      "n_views": 3000,
+      "n_fallback": 0,
+      "invalid_predictions": {
+        "'Unknown'": 2
+      }
+    }
+  },
+  "Q4_judge_size": {
+    "interactive": {
+      "n_matched": 562,
+      "n_scored": 562,
+      "both_correct": 312,
+      "only_A_correct": 104,
+      "only_B_correct": 85,
+      "both_wrong": 61,
+      "acc_A_pct": 74.02135231316726,
+      "acc_B_pct": 70.64056939501779,
+      "prediction_flip_pct": 33.629893238434164
+    },
+    "statement": {
+      "n_matched": 678,
+      "n_scored": 678,
+      "both_correct": 383,
+      "only_A_correct": 72,
+      "only_B_correct": 154,
+      "both_wrong": 69,
+      "acc_A_pct": 67.10914454277287,
+      "acc_B_pct": 79.20353982300885,
+      "prediction_flip_pct": 33.333333333333336
+    }
+  },
+  "Q5_ladder": [
+    {
+      "rung": "baseline_nomanual (judge only)",
+      "n": 3000,
+      "accuracy_pct": 83.33333333333333,
+      "mean_prob_belongs": 0.956873681518546
+    },
+    {
+      "rung": "baseline_withmanual (judge+manual)",
+      "n": 3000,
+      "accuracy_pct": 80.16666666666667,
+      "mean_prob_belongs": 0.9675070326337918
+    },
+    {
+      "rung": "statement (2 essays)",
+      "n": 3000,
+      "accuracy_pct": 65.66666666666667,
+      "mean_prob_belongs": 0.7184101049632382
+    },
+    {
+      "rung": "interactive ABA (3-turn)",
+      "n": 3000,
+      "accuracy_pct": 55.36666666666667,
+      "mean_prob_belongs": 0.574221510041129
+    }
+  ],
+  "Q6_manual": {
+    "n_matched": 3000,
+    "n_scored": 3000,
+    "both_correct": 2135,
+    "only_A_correct": 270,
+    "only_B_correct": 365,
+    "both_wrong": 230,
+    "acc_A_pct": 80.16666666666667,
+    "acc_B_pct": 83.33333333333333,
+    "prediction_flip_pct": 21.166666666666668
+  }
+}
