@@ -1,0 +1,572 @@
+{
+  "datasets": [
+    {
+      "name": "baseline_withmanual",
+      "type": "single",
+      "backend": "logprob",
+      "judge": "0.8B",
+      "expected": 3000,
+      "n_records": 3000,
+      "n_views": 3000,
+      "stage_counts": {
+        "Round 1: True Tag": 1000,
+        "Round 2: Unrelated Tag": 1000,
+        "Round 3: Similar Tag": 1000
+      },
+      "balanced": true,
+      "complete": true,
+      "parsed": 3000,
+      "dropped": 0,
+      "unknown_examples": [],
+      "fallback_used": 0,
+      "acc_all": [
+        2405,
+        3000
+      ],
+      "acc_stage": {
+        "Round 1: True Tag": [
+          646,
+          1000
+        ],
+        "Round 2: Unrelated Tag": [
+          928,
+          1000
+        ],
+        "Round 3: Similar Tag": [
+          831,
+          1000
+        ]
+      },
+      "pred_yes_pct": 29.566666666666666,
+      "true_yes_pct": 33.333333333333336,
+      "yes_bias": -3.7666666666666693,
+      "false_yes": 241,
+      "false_no": 354,
+      "is_correct_mismatches": 0,
+      "n_conf": 3000,
+      "verdict_margin_mean": 3.431484375,
+      "verdict_margin_med": 3.4375,
+      "boolean_margin_mean": -0.08191145833333334,
+      "debater_margin_mean": null,
+      "p_belongs_mean": 0.9675070326337918,
+      "p_true_mean": 0.4797107892581511,
+      "p_a_right_mean": null,
+      "corr_verdict_boolean": 0.47494462391006365,
+      "boolean_inverted": false,
+      "vm_correct_mean": 3.4125974532224532,
+      "vm_wrong_mean": 3.5078256302521007,
+      "has_ab_framing": false
+    },
+    {
+      "name": "baseline_nomanual",
+      "type": "single",
+      "backend": "logprob",
+      "judge": "0.8B",
+      "expected": 3000,
+      "n_records": 3000,
+      "n_views": 3000,
+      "stage_counts": {
+        "Round 1: True Tag": 1000,
+        "Round 2: Unrelated Tag": 1000,
+        "Round 3: Similar Tag": 1000
+      },
+      "balanced": true,
+      "complete": true,
+      "parsed": 3000,
+      "dropped": 0,
+      "unknown_examples": [],
+      "fallback_used": 0,
+      "acc_all": [
+        2500,
+        3000
+      ],
+      "acc_stage": {
+        "Round 1: True Tag": [
+          769,
+          1000
+        ],
+        "Round 2: Unrelated Tag": [
+          912,
+          1000
+        ],
+        "Round 3: Similar Tag": [
+          819,
+          1000
+        ]
+      },
+      "pred_yes_pct": 34.6,
+      "true_yes_pct": 33.333333333333336,
+      "yes_bias": 1.2666666666666657,
+      "false_yes": 269,
+      "false_no": 231,
+      "is_correct_mismatches": 0,
+      "n_conf": 3000,
+      "verdict_margin_mean": 3.1892174479166666,
+      "verdict_margin_med": 3.1875,
+      "boolean_margin_mean": 0.5366171875,
+      "debater_margin_mean": null,
+      "p_belongs_mean": 0.956873681518546,
+      "p_true_mean": 0.6286884316573248,
+      "p_a_right_mean": null,
+      "corr_verdict_boolean": 0.6262423696509134,
+      "boolean_inverted": false,
+      "vm_correct_mean": 3.164025,
+      "vm_wrong_mean": 3.3151796875,
+      "has_ab_framing": false
+    },
+    {
+      "name": "statement",
+      "type": "single",
+      "backend": "logprob",
+      "judge": "0.8B",
+      "expected": 3000,
+      "n_records": 3000,
+      "n_views": 3000,
+      "stage_counts": {
+        "Round 1: True Tag": 1000,
+        "Round 2: Unrelated Tag": 1000,
+        "Round 3: Similar Tag": 1000
+      },
+      "balanced": true,
+      "complete": true,
+      "parsed": 3000,
+      "dropped": 0,
+      "unknown_examples": [],
+      "fallback_used": 896,
+      "acc_all": [
+        1970,
+        3000
+      ],
+      "acc_stage": {
+        "Round 1: True Tag": [
+          720,
+          1000
+        ],
+        "Round 2: Unrelated Tag": [
+          627,
+          1000
+        ],
+        "Round 3: Similar Tag": [
+          623,
+          1000
+        ]
+      },
+      "pred_yes_pct": 49.0,
+      "true_yes_pct": 33.333333333333336,
+      "yes_bias": 15.666666666666664,
+      "false_yes": 750,
+      "false_no": 280,
+      "is_correct_mismatches": 0,
+      "n_conf": 3000,
+      "verdict_margin_mean": 1.0264062468210857,
+      "verdict_margin_med": 1.03125,
+      "boolean_margin_mean": -0.1331822919845581,
+      "debater_margin_mean": 1.2385245660146078,
+      "p_belongs_mean": 0.7184101049632382,
+      "p_true_mean": 0.4677817770811447,
+      "p_a_right_mean": 0.7602467856754028,
+      "corr_verdict_boolean": 0.5103373293379986,
+      "boolean_inverted": false,
+      "vm_correct_mean": 1.023849930254941,
+      "vm_wrong_mean": 1.03129551248643,
+      "has_ab_framing": true
+    },
+    {
+      "name": "statement_rejudge2B",
+      "type": "single",
+      "backend": "logprob",
+      "judge": "2B",
+      "expected": 3000,
+      "n_records": 1287,
+      "n_views": 1287,
+      "stage_counts": {
+        "Round 1: True Tag": 500,
+        "Round 2: Unrelated Tag": 500,
+        "Round 3: Similar Tag": 287
+      },
+      "balanced": false,
+      "complete": false,
+      "parsed": 1287,
+      "dropped": 0,
+      "unknown_examples": [],
+      "fallback_used": 0,
+      "acc_all": [
+        1015,
+        1287
+      ],
+      "acc_stage": {
+        "Round 1: True Tag": [
+          283,
+          500
+        ],
+        "Round 2: Unrelated Tag": [
+          464,
+          500
+        ],
+        "Round 3: Similar Tag": [
+          268,
+          287
+        ]
+      },
+      "pred_yes_pct": 26.262626262626263,
+      "true_yes_pct": 38.85003885003885,
+      "yes_bias": -12.587412587412587,
+      "false_yes": 55,
+      "false_no": 217,
+      "is_correct_mismatches": 0,
+      "n_conf": 1287,
+      "verdict_margin_mean": -1.5431114024864026,
+      "verdict_margin_med": -1.71875,
+      "boolean_margin_mean": -1.0789869852369853,
+      "debater_margin_mean": 0.960592189868847,
+      "p_belongs_mean": 0.22216042978816106,
+      "p_true_mean": 0.26399498085546896,
+      "p_a_right_mean": 0.7174284317015364,
+      "corr_verdict_boolean": 0.7603440066889011,
+      "boolean_inverted": false,
+      "vm_correct_mean": -1.6570350985221676,
+      "vm_wrong_mean": -1.1179917279411764,
+      "has_ab_framing": true
+    },
+    {
+      "name": "interactive",
+      "type": "dual",
+      "backend": "logprob",
+      "judge": "0.8B",
+      "expected": 3000,
+      "n_records": 3000,
+      "n_views": 6000,
+      "stage_counts": {
+        "Round 1: True Tag": 1000,
+        "Round 2: Unrelated Tag": 1000,
+        "Round 3: Similar Tag": 1000
+      },
+      "balanced": true,
+      "complete": true,
+      "parsed": 6000,
+      "dropped": 0,
+      "unknown_examples": [],
+      "fallback_used": 4174,
+      "acc_all": [
+        3291,
+        6000
+      ],
+      "acc_stage": {
+        "Round 1: True Tag": [
+          1554,
+          2000
+        ],
+        "Round 2: Unrelated Tag": [
+          913,
+          2000
+        ],
+        "Round 3: Similar Tag": [
+          824,
+          2000
+        ]
+      },
+      "pred_yes_pct": 63.61666666666667,
+      "true_yes_pct": 33.333333333333336,
+      "yes_bias": 30.28333333333333,
+      "false_yes": 2263,
+      "false_no": 446,
+      "is_correct_mismatches": 0,
+      "n_conf": 6000,
+      "verdict_margin_mean": 0.38980468861262,
+      "verdict_margin_med": 0.40625,
+      "boolean_margin_mean": 0.5763177065849304,
+      "debater_margin_mean": 0.9982287731170655,
+      "p_belongs_mean": 0.5905815226368822,
+      "p_true_mean": 0.6360025839799744,
+      "p_a_right_mean": 0.7066942519784316,
+      "corr_verdict_boolean": 0.32510431357752356,
+      "boolean_inverted": false,
+      "vm_correct_mean": 0.3209036027577394,
+      "vm_wrong_mean": 0.4735084440753045,
+      "has_ab_framing": true
+    },
+    {
+      "name": "interactive_rejudge2B",
+      "type": "dual",
+      "backend": "logprob",
+      "judge": "2B",
+      "expected": 3000,
+      "n_records": 553,
+      "n_views": 1106,
+      "stage_counts": {
+        "Round 1: True Tag": 250,
+        "Round 2: Unrelated Tag": 250,
+        "Round 3: Similar Tag": 53
+      },
+      "balanced": false,
+      "complete": false,
+      "parsed": 1106,
+      "dropped": 0,
+      "unknown_examples": [],
+      "fallback_used": 0,
+      "acc_all": [
+        826,
+        1106
+      ],
+      "acc_stage": {
+        "Round 1: True Tag": [
+          348,
+          500
+        ],
+        "Round 2: Unrelated Tag": [
+          401,
+          500
+        ],
+        "Round 3: Similar Tag": [
+          77,
+          106
+        ]
+      },
+      "pred_yes_pct": 43.037974683544306,
+      "true_yes_pct": 45.20795660036166,
+      "yes_bias": -2.169981916817356,
+      "false_yes": 128,
+      "false_no": 152,
+      "is_correct_mismatches": 0,
+      "n_conf": 1106,
+      "verdict_margin_mean": -1.8019608951175408,
+      "verdict_margin_med": -1.828125,
+      "boolean_margin_mean": -1.3180944846292948,
+      "debater_margin_mean": 1.2554377578266276,
+      "p_belongs_mean": 0.17796567270767905,
+      "p_true_mean": 0.22822699448040343,
+      "p_a_right_mean": 0.7688210392922004,
+      "corr_verdict_boolean": 0.7963513009041803,
+      "boolean_inverted": false,
+      "vm_correct_mean": -1.8364860774818401,
+      "vm_wrong_mean": -1.7001116071428573,
+      "has_ab_framing": true
+    },
+    {
+      "name": "pydantic_baseline",
+      "type": "single",
+      "backend": "pydantic",
+      "judge": "0.8B",
+      "expected": 3000,
+      "n_records": 3000,
+      "n_views": 3000,
+      "stage_counts": {
+        "Round 1: True Tag": 1000,
+        "Round 2: Unrelated Tag": 1000,
+        "Round 3: Similar Tag": 1000
+      },
+      "balanced": true,
+      "complete": true,
+      "parsed": 3000,
+      "dropped": 0,
+      "unknown_examples": [],
+      "fallback_used": 0,
+      "acc_all": [
+        2404,
+        3000
+      ],
+      "acc_stage": {
+        "Round 1: True Tag": [
+          732,
+          1000
+        ],
+        "Round 2: Unrelated Tag": [
+          902,
+          1000
+        ],
+        "Round 3: Similar Tag": [
+          770,
+          1000
+        ]
+      },
+      "pred_yes_pct": 35.333333333333336,
+      "true_yes_pct": 33.333333333333336,
+      "yes_bias": 2.0,
+      "false_yes": 328,
+      "false_no": 268,
+      "is_correct_mismatches": 0,
+      "n_conf": 0,
+      "verdict_margin_mean": null,
+      "verdict_margin_med": null,
+      "boolean_margin_mean": null,
+      "debater_margin_mean": null,
+      "p_belongs_mean": null,
+      "p_true_mean": null,
+      "p_a_right_mean": null,
+      "corr_verdict_boolean": null,
+      "boolean_inverted": false,
+      "vm_correct_mean": null,
+      "vm_wrong_mean": null,
+      "has_ab_framing": false
+    },
+    {
+      "name": "pydantic_statement",
+      "type": "single",
+      "backend": "pydantic",
+      "judge": "0.8B",
+      "expected": 3000,
+      "n_records": 3000,
+      "n_views": 3000,
+      "stage_counts": {
+        "Round 1: True Tag": 1000,
+        "Round 2: Unrelated Tag": 1000,
+        "Round 3: Similar Tag": 1000
+      },
+      "balanced": true,
+      "complete": true,
+      "parsed": 2871,
+      "dropped": 129,
+      "unknown_examples": [
+        "Unknown",
+        "Unknown",
+        "Unknown",
+        "Unknown",
+        "Unknown"
+      ],
+      "fallback_used": 0,
+      "acc_all": [
+        2239,
+        2871
+      ],
+      "acc_stage": {
+        "Round 1: True Tag": [
+          594,
+          911
+        ],
+        "Round 2: Unrelated Tag": [
+          877,
+          986
+        ],
+        "Round 3: Similar Tag": [
+          768,
+          974
+        ]
+      },
+      "pred_yes_pct": 31.661442006269592,
+      "true_yes_pct": 31.731104144897248,
+      "yes_bias": -0.06966213862765613,
+      "false_yes": 315,
+      "false_no": 317,
+      "is_correct_mismatches": 0,
+      "n_conf": 0,
+      "verdict_margin_mean": null,
+      "verdict_margin_med": null,
+      "boolean_margin_mean": null,
+      "debater_margin_mean": null,
+      "p_belongs_mean": null,
+      "p_true_mean": null,
+      "p_a_right_mean": null,
+      "corr_verdict_boolean": null,
+      "boolean_inverted": false,
+      "vm_correct_mean": null,
+      "vm_wrong_mean": null,
+      "has_ab_framing": true
+    },
+    {
+      "name": "pydantic_interactive",
+      "type": "dual",
+      "backend": "pydantic",
+      "judge": "0.8B",
+      "expected": 3000,
+      "n_records": 3000,
+      "n_views": 3000,
+      "stage_counts": {
+        "Round 1: True Tag": 1000,
+        "Round 2: Unrelated Tag": 1000,
+        "Round 3: Similar Tag": 1000
+      },
+      "balanced": true,
+      "complete": true,
+      "parsed": 2998,
+      "dropped": 2,
+      "unknown_examples": [
+        "Unknown",
+        "Unknown"
+      ],
+      "fallback_used": 0,
+      "acc_all": [
+        2001,
+        2998
+      ],
+      "acc_stage": {
+        "Round 1: True Tag": [
+          652,
+          998
+        ],
+        "Round 2: Unrelated Tag": [
+          711,
+          1000
+        ],
+        "Round 3: Similar Tag": [
+          638,
+          1000
+        ]
+      },
+      "pred_yes_pct": 43.462308205470315,
+      "true_yes_pct": 33.28885923949299,
+      "yes_bias": 10.173448965977322,
+      "false_yes": 651,
+      "false_no": 346,
+      "is_correct_mismatches": 0,
+      "n_conf": 0,
+      "verdict_margin_mean": null,
+      "verdict_margin_med": null,
+      "boolean_margin_mean": null,
+      "debater_margin_mean": null,
+      "p_belongs_mean": null,
+      "p_true_mean": null,
+      "p_a_right_mean": null,
+      "corr_verdict_boolean": null,
+      "boolean_inverted": false,
+      "vm_correct_mean": null,
+      "vm_wrong_mean": null,
+      "has_ab_framing": true
+    }
+  ],
+  "q2": {
+    "interactive": {
+      "n": 3000,
+      "acc_ABA": 55.36666666666667,
+      "acc_BAB": 54.333333333333336,
+      "flip_pct": 38.233333333333334,
+      "flip_Yes->No": 550,
+      "flip_No->Yes": 597,
+      "mean_P_A_right_ABA": 0.8141146828130713,
+      "mean_P_A_right_BAB": 0.5992738211437947
+    },
+    "interactive_rejudge2B": {
+      "n": 553,
+      "acc_ABA": 75.04520795660036,
+      "acc_BAB": 74.32188065099457,
+      "flip_pct": 30.018083182640144,
+      "flip_Yes->No": 69,
+      "flip_No->Yes": 97,
+      "mean_P_A_right_ABA": 0.7689488438228852,
+      "mean_P_A_right_BAB": 0.7686932347615193
+    },
+    "pydantic_interactive": {
+      "n": 0,
+      "acc_ABA": 0.0,
+      "acc_BAB": 0.0,
+      "flip_pct": 0.0,
+      "flip_Yes->No": 0,
+      "flip_No->Yes": 0,
+      "mean_P_A_right_ABA": null,
+      "mean_P_A_right_BAB": null
+    }
+  },
+  "q4": {
+    "statement: 0.8B vs 2B": {
+      "shared_keys": 1287,
+      "acc_0.8B": 66.82206682206682,
+      "acc_2B": 78.86557886557887,
+      "delta_pp": 12.043512043512052
+    },
+    "interactive: 0.8B vs 2B": {
+      "shared_keys": 553,
+      "acc_0.8B": 59.76491862567812,
+      "acc_2B": 74.68354430379746,
+      "delta_pp": 14.91862567811934
+    }
+  }
+}
