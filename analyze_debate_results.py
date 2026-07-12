@@ -1,512 +1,393 @@
 #!/usr/bin/env python3
 """
-analyze_debate_results.py  --  STRICTLY READ-ONLY analysis of the AI-Debate XMLC results.
+AI-Debate XMLC - results analyzer (v2, read-only).
 
-It NEVER runs a model, NEVER launches SLURM, and NEVER overwrites any result
-file. It only *reads* the merged *_full*.json files and writes two brand-new
-outputs:
+Changes vs v1 (requested):
+  1) PARSED-ONLY: every metric is computed only on records whose judge output
+     could be parsed into a valid verdict {Yes, No}. Un-parsable / "Unknown" /
+     null / fallback-with-no-verdict records are DROPPED, and the number of
+     dropped records is printed per dataset (and per stage).
+  2) CONFIDENCE ANOMALY: auto-detects the with-manual boolean-framing inversion
+     (verdict vs boolean log-prob anti-correlation) and reports an
+     orientation-corrected agreement next to the raw one. Root cause + real fix
+     are in the README; this only makes the reported numbers honest.
+  3) YES-BIAS: per dataset and per stage, reports predicted-Yes rate vs true-Yes
+     rate, the bias delta, and the directional error split (false-Yes / false-No).
 
-    debate_analysis_report.md    (human-readable)
-    debate_analysis_report.json  (machine-readable, same numbers)
-
-If either output already exists it is written with a numeric suffix instead of
-being clobbered, so nothing you produced is ever at risk.
-
-Questions answered (see README.md for the mapping):
-    Q1  log-prob framings (Yes/No, true/false, A/B) - is the judge informative?
-    Q2  ABA vs BAB verdicts in the interactive round (order effects)
-    Q3  any 'Unknown'/unforced outputs left anywhere
-    Q4  does the larger 2B judge beat the 0.8B judge (matched pairs)
-    Q5  input-richness ladder: baseline -> statement -> interactive
-    Q6  baseline WITH manual vs WITHOUT manual (matched pairs)
-
-Usage:
-    python3 analyze_debate_results.py [directory]     # default: current dir
+This script never writes to the dataset files. It only reads *_full*.json and
+writes a fresh report (debate_analysis_report_v2.{md,json}).
 """
 
-import os
-import sys
 import json
 import math
+import os
+import sys
 from collections import defaultdict
 
+# --------------------------------------------------------------------------- #
+# CONFIG
+# --------------------------------------------------------------------------- #
+SCAN_DIR = os.environ.get("DEBATE_DIR", "/home/s27erahn/NLP_LabSS26")
 
-# --------------------------------------------------------------------------- #
-# File registry. Each logical dataset can have several candidate filenames
-# (naming drifted between _rejudge and _rejudge2B) - the first that exists wins.
-# --------------------------------------------------------------------------- #
-FILE_CANDIDATES = {
-    "baseline_withmanual":    ["baseline_withmanual_results_full.json"],
-    "baseline_nomanual":      ["baseline_nomanual_results_full.json"],
-    "statement":              ["statement_results_full.json"],
-    "statement_rejudge2B":    ["statement_results_full_rejudge2B.json",
-                               "statement_results_full_rejudge.json"],
-    "interactive":            ["interactive_results_full.json"],
-    "interactive_rejudge2B":  ["interactive_results_full_rejudge2B.json"],
-    "pydantic_interactive":   ["pydantic_interactive_results_full.json"],
+# logical dataset name -> filename
+DATASETS = {
+    "baseline_withmanual":    "baseline_withmanual_results_full.json",
+    "baseline_nomanual":      "baseline_nomanual_results_full.json",
+    "statement":              "statement_results_full.json",
+    "statement_rejudge2B":    "statement_results_full_rejudge2B.json",
+    "interactive":            "interactive_results_full.json",
+    "interactive_rejudge2B":  "interactive_results_full_rejudge2B.json",
+    "pydantic_interactive":   "pydantic_interactive_results_full.json",
 }
 
-STAGES = ["Round 1: True Tag", "Round 2: Unrelated Tag", "Round 3: Similar Tag"]
+# Ground-truth answer per stage: Round 1 (a real, withheld tag) -> Yes belongs.
+# Rounds 2/3 (unrelated / similar-but-wrong tag) -> No, does not belong.
+STAGE_TRUE_LABEL = {
+    "Round 1: True Tag":      "Yes",
+    "Round 2: Unrelated Tag": "No",
+    "Round 3: Similar Tag":   "No",
+}
+
 VALID_VERDICTS = {"Yes", "No"}
 
+# Candidate key names (schemas drifted across scripts, so we search a few).
+PRED_KEYS   = ["prediction", "verdict", "judge_verdict", "answer", "final_verdict"]
+CORRECT_KEYS = ["is_correct", "correct"]
+STAGE_KEYS  = ["stage", "round", "stage_name"]
+PMID_KEYS   = ["pmid", "pmID", "pm_id", "id"]
+FALLBACK_KEYS = ["needed_fallback", "used_fallback", "fallback"]
+
+CONF_ALIASES = {
+    "verdict_prob_belongs": ["verdict_prob_belongs", "prob_belongs", "verdict_prob_yes", "p_belongs"],
+    "boolean_prob_true":    ["boolean_prob_true", "prob_true", "p_true"],
+    "debater_prob_A_right": ["debater_prob_A_right", "prob_A_right", "p_A_right"],
+    "logprob_yes":          ["verdict_logprob_yes", "logprob_yes", "lp_yes"],
+    "logprob_no":           ["verdict_logprob_no", "logprob_no", "lp_no"],
+}
 
 # --------------------------------------------------------------------------- #
-# Safe loading / output naming
+# small helpers
 # --------------------------------------------------------------------------- #
-def find_file(directory, key):
-    for name in FILE_CANDIDATES[key]:
-        p = os.path.join(directory, name)
-        if os.path.exists(p):
-            return p
+def first_key(d, keys, default=None):
+    if not isinstance(d, dict):
+        return default
+    for k in keys:
+        if k in d and d[k] is not None:
+            return d[k]
+    return default
+
+
+def get_conf(container, logical_name):
+    """Look for a confidence value in the record itself or a nested 'confidence' dict."""
+    aliases = CONF_ALIASES[logical_name]
+    for scope in (container, (container or {}).get("confidence", {})):
+        v = first_key(scope, aliases, None)
+        if isinstance(v, (int, float)):
+            return float(v)
     return None
 
 
-def load_json(path):
-    try:
-        with open(path, "r", encoding="utf-8") as f:
-            return json.load(f), None
-    except (json.JSONDecodeError, OSError) as e:
-        return None, str(e)
-
-
-def safe_out_path(directory, filename):
-    """Never overwrite: append _1, _2 ... if the target already exists."""
-    base, ext = os.path.splitext(filename)
-    cand = os.path.join(directory, filename)
-    i = 1
-    while os.path.exists(cand):
-        cand = os.path.join(directory, "%s_%d%s" % (base, i, ext))
-        i += 1
-    return cand
-
-
-# --------------------------------------------------------------------------- #
-# View extraction: normalise every record into 0..2 comparable 'views'.
-# A view = one judge decision with optional confidence.
-# --------------------------------------------------------------------------- #
-def verdict_is_correct(pred, gt, rec_correct):
-    if isinstance(rec_correct, bool):
-        return rec_correct
-    if pred is None or gt is None:
+def norm_pred(raw):
+    """Normalize a raw prediction into 'Yes' / 'No' / None (None = unparsable)."""
+    if raw is None:
         return None
-    return pred == gt
+    s = str(raw).strip().lower()
+    if s in ("yes", "y", "true", "belongs", "1"):
+        return "Yes"
+    if s in ("no", "n", "false", "not", "does not belong", "0"):
+        return "No"
+    return None  # 'unknown', '', garbage, etc.
 
 
-def iter_views(records):
-    """Yield dicts: {order, stage, pmid, gt, pred, correct, conf, fallback}."""
-    for r in records:
-        stage = r.get("stage")
-        pmid = str(r.get("pmid"))
-        gt = r.get("ground_truth")
-
-        if "judge_ABA" in r or "judge_BAB" in r:            # interactive-style
-            for order in ("ABA", "BAB"):
-                j = r.get("judge_%s" % order)
-                if not j:
-                    continue
-                pred = j.get("prediction")
-                yield {
-                    "order": order, "stage": stage, "pmid": pmid, "gt": gt,
-                    "pred": pred,
-                    "correct": verdict_is_correct(pred, gt, j.get("is_correct")),
-                    "conf": j.get("confidence") or {},
-                    "fallback": bool(j.get("needed_fallback")),
-                }
-        elif "model_prediction" in r:                       # pydantic prior
-            pred = r.get("model_prediction")
-            yield {
-                "order": "single", "stage": stage, "pmid": pmid, "gt": gt,
-                "pred": pred,
-                "correct": verdict_is_correct(pred, gt, r.get("is_correct")),
-                "conf": r.get("confidence") or {},
-                "fallback": bool(r.get("needed_fallback")),
-            }
-        else:                                               # baseline / statement
-            pred = r.get("prediction")
-            yield {
-                "order": "single", "stage": stage, "pmid": pmid, "gt": gt,
-                "pred": pred,
-                "correct": verdict_is_correct(pred, gt, r.get("is_correct")),
-                "conf": r.get("confidence") or {},
-                "fallback": bool(r.get("needed_fallback")),
-            }
+def norm_stage(raw):
+    if raw is None:
+        return "UNKNOWN_STAGE"
+    s = str(raw)
+    for canon in STAGE_TRUE_LABEL:
+        if canon.lower() in s.lower():
+            return canon
+    low = s.lower()
+    if "true" in low or "round 1" in low or "round1" in low:
+        return "Round 1: True Tag"
+    if "unrelated" in low or "round 2" in low or "round2" in low:
+        return "Round 2: Unrelated Tag"
+    if "similar" in low or "round 3" in low or "round3" in low:
+        return "Round 3: Similar Tag"
+    return s
 
 
-def mean(xs):
-    xs = [x for x in xs if x is not None]
-    return sum(xs) / len(xs) if xs else None
+def pearson(xs, ys):
+    n = len(xs)
+    if n < 3:
+        return None
+    mx = sum(xs) / n
+    my = sum(ys) / n
+    num = sum((x - mx) * (y - my) for x, y in zip(xs, ys))
+    dx = math.sqrt(sum((x - mx) ** 2 for x in xs))
+    dy = math.sqrt(sum((y - my) ** 2 for y in ys))
+    if dx == 0 or dy == 0:
+        return None
+    return num / (dx * dy)
 
 
-def pct(n, d):
-    return 100.0 * n / d if d else None
+def pct(a, b):
+    return (100.0 * a / b) if b else 0.0
 
 
 # --------------------------------------------------------------------------- #
-# Aggregations
+# view extraction: flatten each record into 0+ "views" that each carry one
+# verdict. Interactive rejudge2B records carry judge_ABA / judge_BAB; those
+# become two views. Everything else is a single view.
 # --------------------------------------------------------------------------- #
-def accuracy_by_stage(views):
-    """Return {stage_or_ALL: (n, n_correct, acc)} for views with a known label."""
-    tot = defaultdict(int)
-    cor = defaultdict(int)
-    for v in views:
-        if v["correct"] is None:
+def record_to_views(rec):
+    stage = norm_stage(first_key(rec, STAGE_KEYS))
+    pmid = first_key(rec, PMID_KEYS)
+    fallback = bool(first_key(rec, FALLBACK_KEYS, False))
+
+    views = []
+    has_sub = any(k in rec for k in ("judge_ABA", "judge_BAB"))
+    if has_sub:
+        for order, subkey in (("ABA", "judge_ABA"), ("BAB", "judge_BAB")):
+            sub = rec.get(subkey)
+            if not isinstance(sub, dict):
+                continue
+            views.append({
+                "stage": stage, "pmid": pmid, "order": order, "fallback": fallback,
+                "pred": norm_pred(first_key(sub, PRED_KEYS, first_key(rec, PRED_KEYS))),
+                "container": sub,
+            })
+    else:
+        views.append({
+            "stage": stage, "pmid": pmid, "order": None, "fallback": fallback,
+            "pred": norm_pred(first_key(rec, PRED_KEYS)),
+            "container": rec,
+        })
+    return views
+
+
+def true_label_for(stage):
+    return STAGE_TRUE_LABEL.get(stage)
+
+
+def is_correct_view(v):
+    tl = true_label_for(v["stage"])
+    if tl is not None and v["pred"] is not None:
+        return v["pred"] == tl
+    # fall back to a recorded is_correct flag if we can't derive ground truth
+    flag = first_key(v["container"], CORRECT_KEYS)
+    return bool(flag) if flag is not None else None
+
+
+# --------------------------------------------------------------------------- #
+# analysis
+# --------------------------------------------------------------------------- #
+def analyze_dataset(name, records):
+    all_views = []
+    for rec in records:
+        all_views.extend(record_to_views(rec))
+
+    total_views = len(all_views)
+
+    # (1) drop unparsable views
+    dropped = [v for v in all_views if v["pred"] not in VALID_VERDICTS]
+    parsed = [v for v in all_views if v["pred"] in VALID_VERDICTS]
+
+    dropped_by_stage = defaultdict(int)
+    for v in dropped:
+        dropped_by_stage[v["stage"]] += 1
+
+    # accuracy (parsed only), overall + per stage
+    acc = {"ALL": [0, 0]}  # stage -> [correct, n]
+    verdict_counts = defaultdict(int)
+    for v in parsed:
+        c = is_correct_view(v)
+        st = v["stage"]
+        acc.setdefault(st, [0, 0])
+        if c is not None:
+            acc["ALL"][1] += 1
+            acc[st][1] += 1
+            if c:
+                acc["ALL"][0] += 1
+                acc[st][0] += 1
+        verdict_counts[v["pred"]] += 1
+
+    # (3) yes-bias, overall + per stage
+    bias = {}
+    for st in ["ALL"] + list(STAGE_TRUE_LABEL):
+        sub = parsed if st == "ALL" else [v for v in parsed if v["stage"] == st]
+        n = len(sub)
+        if n == 0:
             continue
-        tot["ALL"] += 1
-        cor["ALL"] += 1 if v["correct"] else 0
-        tot[v["stage"]] += 1
-        cor[v["stage"]] += 1 if v["correct"] else 0
-    out = {}
-    for k in ["ALL"] + STAGES:
-        if tot[k]:
-            out[k] = (tot[k], cor[k], pct(cor[k], tot[k]))
-    return out
-
-
-def verdict_bias(views):
-    """How often does the judge say Yes vs No overall?"""
-    c = defaultdict(int)
-    for v in views:
-        c[v["pred"]] += 1
-    return dict(c)
-
-
-def confidence_summary(views):
-    """Aggregate the three log-prob framings and their agreement (Q1)."""
-    yes_no_margin, prob_belongs, prob_true, prob_A = [], [], [], []
-    has_debater = 0
-    agree_verdict_bool = 0
-    agree_denom = 0
-    for v in views:
-        c = v["conf"]
-        vl = c.get("verdict_logprob")
-        if isinstance(vl, dict) and "Yes" in vl and "No" in vl:
-            yes_no_margin.append(vl["Yes"] - vl["No"])
-        pb = c.get("verdict_prob_belongs")
-        pt = c.get("boolean_prob_true")
-        if pb is not None:
-            prob_belongs.append(pb)
-        if pt is not None:
-            prob_true.append(pt)
-        if pb is not None and pt is not None:
-            agree_denom += 1
-            if (pb >= 0.5) == (pt >= 0.5):
-                agree_verdict_bool += 1
-        pa = c.get("debater_prob_A_right")
-        if pa is not None:
-            prob_A.append(pa)
-            has_debater += 1
-    return {
-        "n_with_confidence": sum(1 for v in views if v["conf"]),
-        "mean_verdict_logprob_margin_Yes_minus_No": mean(yes_no_margin),
-        "mean_prob_belongs(Yes)": mean(prob_belongs),
-        "mean_boolean_prob_true": mean(prob_true),
-        "mean_debater_prob_A_right": mean(prob_A),
-        "n_with_debater_framing": has_debater,
-        "verdict_vs_boolean_agreement_pct": pct(agree_verdict_bool, agree_denom),
-    }
-
-
-def unknown_scan(views):
-    """Q3: any prediction outside {Yes,No}, plus fallback usage."""
-    bad = defaultdict(int)
-    fb = 0
-    n = 0
-    for v in views:
-        n += 1
-        if v["pred"] not in VALID_VERDICTS:
-            bad[repr(v["pred"])] += 1
-        if v["fallback"]:
-            fb += 1
-    return {"n_views": n, "n_fallback": fb,
-            "invalid_predictions": dict(bad)}
-
-
-def matched_pairs(views_a, views_b):
-    """Match on (order, stage, pmid); return McNemar-style table."""
-    da = {(v["order"], v["stage"], v["pmid"]): v for v in views_a}
-    db = {(v["order"], v["stage"], v["pmid"]): v for v in views_b}
-    keys = set(da) & set(db)
-    both_ok = a_ok = b_ok = both_bad = 0
-    flips = 0
-    for k in keys:
-        ca, cb = da[k]["correct"], db[k]["correct"]
-        if ca is None or cb is None:
-            continue
-        if da[k]["pred"] != db[k]["pred"]:
-            flips += 1
-        if ca and cb:
-            both_ok += 1
-        elif ca and not cb:
-            a_ok += 1
-        elif cb and not ca:
-            b_ok += 1
+        pred_yes = sum(1 for v in sub if v["pred"] == "Yes")
+        if st == "ALL":
+            # weighted true-yes rate across stages present
+            true_yes = sum(1 for v in sub if true_label_for(v["stage"]) == "Yes")
         else:
-            both_bad += 1
-    n = both_ok + a_ok + b_ok + both_bad
-    return {
-        "n_matched": len(keys), "n_scored": n,
-        "both_correct": both_ok,
-        "only_A_correct": a_ok, "only_B_correct": b_ok,
-        "both_wrong": both_bad,
-        "acc_A_pct": pct(both_ok + a_ok, n),
-        "acc_B_pct": pct(both_ok + b_ok, n),
-        "prediction_flip_pct": pct(flips, n),
-    }
-
-
-# --------------------------------------------------------------------------- #
-# Main
-# --------------------------------------------------------------------------- #
-def main():
-    directory = os.path.abspath(sys.argv[1] if len(sys.argv) > 1 else os.getcwd())
-    md = []
-    R = {}   # machine-readable report
-
-    def line(s=""):
-        md.append(s)
-
-    line("# AI-Debate XMLC - analysis report")
-    line("")
-    line("Directory scanned: `%s`" % directory)
-    line("")
-
-    # ---- Load everything we can, purely read-only ----
-    loaded = {}
-    present, missing = [], []
-    for key in FILE_CANDIDATES:
-        path = find_file(directory, key)
-        if path is None:
-            missing.append(key)
-            continue
-        data, err = load_json(path)
-        if err:
-            line("> WARNING: %s could not be parsed (%s) - skipped." %
-                 (os.path.basename(path), err))
-            missing.append(key)
-            continue
-        recs = data.get("results", [])
-        loaded[key] = {"path": path, "meta": data.get("metadata", {}),
-                       "records": recs, "views": list(iter_views(recs))}
-        present.append(key)
-
-    # ---- Inventory / current state ----
-    line("## Current state / inventory")
-    line("")
-    line("| dataset | file | records | metadata acc |")
-    line("|---|---|---|---|")
-    for key in FILE_CANDIDATES:
-        if key in loaded:
-            m = loaded[key]["meta"]
-            acc = m.get("overall_accuracy", m.get("accuracy_ABA", "-"))
-            line("| %s | `%s` | %d | %s |" %
-                 (key, os.path.basename(loaded[key]["path"]),
-                  len(loaded[key]["records"]), acc))
-        else:
-            line("| %s | MISSING | - | - |" % key)
-    line("")
-    R["inventory"] = {"present": present, "missing": missing}
-
-    # ---- Per-dataset core stats (accuracy by stage, verdict bias) ----
-    line("## Per-dataset accuracy (overall + per stage) and Yes/No bias")
-    line("")
-    R["per_dataset"] = {}
-    for key in present:
-        views = loaded[key]["views"]
-        acc = accuracy_by_stage(views)
-        bias = verdict_bias(views)
-        R["per_dataset"][key] = {"accuracy": acc, "verdict_bias": bias}
-        line("### %s" % key)
-        line("")
-        line("| scope | n | correct | accuracy % |")
-        line("|---|---|---|---|")
-        for scope, (n, cor, a) in acc.items():
-            line("| %s | %d | %d | %.2f |" % (scope, n, cor, a))
-        line("")
-        line("Verdict counts: %s" % json.dumps(bias))
-        line("")
-
-    # ---- Q1: log-prob framings ----
-    line("## Q1 - Log-probability framings (Yes/No, true/false, A/B)")
-    line("")
-    line("| dataset | n conf | mean margin (logP Yes-No) | mean P(belongs) | "
-         "mean P(true) | mean P(A right) | verdict/boolean agree % |")
-    line("|---|---|---|---|---|---|---|")
-    R["Q1_confidence"] = {}
-    for key in present:
-        cs = confidence_summary(loaded[key]["views"])
-        R["Q1_confidence"][key] = cs
-        def f(x):
-            return "%.3f" % x if isinstance(x, float) else ("-" if x is None else str(x))
-        line("| %s | %d | %s | %s | %s | %s | %s |" % (
-            key, cs["n_with_confidence"],
-            f(cs["mean_verdict_logprob_margin_Yes_minus_No"]),
-            f(cs["mean_prob_belongs(Yes)"]),
-            f(cs["mean_boolean_prob_true"]),
-            f(cs["mean_debater_prob_A_right"]),
-            f(cs["verdict_vs_boolean_agreement_pct"])))
-    line("")
-    line("*Interpretation hints:* a mean |margin| near 0 and P(belongs)~0.5 means "
-         "the judge is barely distinguishing Yes from No (log-probs uninformative). "
-         "A `mean P(A right)` far from 0.5 that is stable across ABA/BAB indicates "
-         "a position/letter bias rather than genuine argument evaluation.")
-    line("")
-
-    # ---- Q2: ABA vs BAB ----
-    line("## Q2 - Interactive round: ABA vs BAB")
-    line("")
-    R["Q2_order"] = {}
-    for key in ("interactive", "interactive_rejudge2B"):
-        if key not in loaded:
-            continue
-        views = loaded[key]["views"]
-        aba = [v for v in views if v["order"] == "ABA"]
-        bab = [v for v in views if v["order"] == "BAB"]
-        # pair ABA vs BAB by (stage,pmid)
-        aba_k = {(v["stage"], v["pmid"]): v for v in aba}
-        bab_k = {(v["stage"], v["pmid"]): v for v in bab}
-        keys = set(aba_k) & set(bab_k)
-        flip = both_ok = only_aba = only_bab = both_bad = 0
-        for k in keys:
-            a, b = aba_k[k], bab_k[k]
-            if a["pred"] != b["pred"]:
-                flip += 1
-            ca, cb = a["correct"], b["correct"]
-            if ca and cb: both_ok += 1
-            elif ca and not cb: only_aba += 1
-            elif cb and not ca: only_bab += 1
-            elif ca is not None and cb is not None: both_bad += 1
-        n = both_ok + only_aba + only_bab + both_bad
-        rec = {
-            "acc_ABA_pct": accuracy_by_stage(aba).get("ALL", (0, 0, None))[2],
-            "acc_BAB_pct": accuracy_by_stage(bab).get("ALL", (0, 0, None))[2],
-            "order_flip_pct": pct(flip, len(keys)),
-            "both_correct": both_ok, "only_ABA_correct": only_aba,
-            "only_BAB_correct": only_bab, "both_wrong": both_bad,
-            "metadata_order_flip_rate": loaded[key]["meta"].get("order_flip_rate"),
+            true_yes = sum(1 for v in sub if true_label_for(st) == "Yes")
+        # directional errors
+        false_yes = sum(1 for v in sub
+                        if v["pred"] == "Yes" and true_label_for(v["stage"]) == "No")
+        false_no = sum(1 for v in sub
+                       if v["pred"] == "No" and true_label_for(v["stage"]) == "Yes")
+        bias[st] = {
+            "n": n,
+            "pred_yes_rate": pct(pred_yes, n),
+            "true_yes_rate": pct(true_yes, n),
+            "yes_bias_delta": pct(pred_yes, n) - pct(true_yes, n),
+            "false_yes_rate": pct(false_yes, n),
+            "false_no_rate": pct(false_no, n),
         }
-        R["Q2_order"][key] = rec
-        line("### %s" % key)
-        line("")
-        line("| metric | value |")
-        line("|---|---|")
-        for kk, vv in rec.items():
-            line("| %s | %s |" % (kk, ("%.2f" % vv) if isinstance(vv, float) else vv))
-        line("")
 
-    # ---- Q3: unknown / unforced ----
-    line("## Q3 - Unknown / unforced outputs and fallback usage")
-    line("")
-    line("| dataset | views | fallback used | invalid predictions |")
-    line("|---|---|---|---|")
-    R["Q3_unknown"] = {}
-    for key in present:
-        u = unknown_scan(loaded[key]["views"])
-        R["Q3_unknown"][key] = u
-        line("| %s | %d | %d | %s |" % (
-            key, u["n_views"], u["n_fallback"],
-            json.dumps(u["invalid_predictions"]) if u["invalid_predictions"] else "none"))
-    line("")
+    # (2) confidence framings + inversion detection (parsed only)
+    vb, bt = [], []
+    for v in parsed:
+        a = get_conf(v["container"], "verdict_prob_belongs")
+        b = get_conf(v["container"], "boolean_prob_true")
+        if a is not None and b is not None:
+            vb.append(a)
+            bt.append(b)
+    corr = pearson(vb, bt) if vb else None
+    inverted = (corr is not None and corr < -0.15)
 
-    # ---- Q4: 2B vs 0.8B ----
-    line("## Q4 - Larger 2B judge vs 0.8B judge (matched pairs)")
-    line("")
-    R["Q4_judge_size"] = {}
-    for small, big, label in [("interactive", "interactive_rejudge2B", "interactive"),
-                              ("statement", "statement_rejudge2B", "statement")]:
-        if small in loaded and big in loaded:
-            mp = matched_pairs(loaded[small]["views"], loaded[big]["views"])
-            R["Q4_judge_size"][label] = mp
-            line("### %s  (A = 0.8B `%s`, B = 2B `%s`)" % (
-                label, os.path.basename(loaded[small]["path"]),
-                os.path.basename(loaded[big]["path"])))
-            line("")
-            line("| metric | value |")
-            line("|---|---|")
-            for kk, vv in mp.items():
-                line("| %s | %s |" % (kk, ("%.2f" % vv) if isinstance(vv, float) else vv))
-            line("")
-        else:
-            line("- %s: cannot compare (missing %s)." %
-                 (label, small if small not in loaded else big))
-            line("")
+    def agree_rate(correct_orientation):
+        if not vb:
+            return None
+        agree = 0
+        for a, b in zip(vb, bt):
+            bb = (1.0 - b) if correct_orientation and inverted else b
+            if (a >= 0.5) == (bb >= 0.5):
+                agree += 1
+        return pct(agree, len(vb))
 
-    # ---- Q5: input-richness ladder (same 0.8B judge) ----
-    line("## Q5 - Does more input help? baseline -> statement -> interactive")
-    line("")
-    line("Fair comparison uses the 0.8B judge in every rung. Interactive is shown "
-         "as ABA (regenerated verdict). Baselines carry no A/B framing.")
-    line("")
-    ladder = []
-    if "baseline_nomanual" in loaded:
-        ladder.append(("baseline_nomanual (judge only)", loaded["baseline_nomanual"]["views"]))
-    if "baseline_withmanual" in loaded:
-        ladder.append(("baseline_withmanual (judge+manual)", loaded["baseline_withmanual"]["views"]))
-    if "statement" in loaded:
-        ladder.append(("statement (2 essays)", loaded["statement"]["views"]))
-    if "interactive" in loaded:
-        ladder.append(("interactive ABA (3-turn)",
-                       [v for v in loaded["interactive"]["views"] if v["order"] == "ABA"]))
-    line("| rung | n | accuracy % | mean P(belongs) |")
-    line("|---|---|---|---|")
-    R["Q5_ladder"] = []
-    for name, views in ladder:
-        acc = accuracy_by_stage(views).get("ALL", (0, 0, None))
-        cs = confidence_summary(views)
-        pb = cs["mean_prob_belongs(Yes)"]
-        R["Q5_ladder"].append({"rung": name, "n": acc[0], "accuracy_pct": acc[2],
-                               "mean_prob_belongs": pb})
-        line("| %s | %d | %s | %s |" % (
-            name, acc[0],
-            "%.2f" % acc[2] if acc[2] is not None else "-",
-            "%.3f" % pb if pb is not None else "-"))
-    line("")
+    conf = {
+        "n_conf": len(vb),
+        "mean_P_belongs": (sum(vb) / len(vb)) if vb else None,
+        "mean_P_true_raw": (sum(bt) / len(bt)) if bt else None,
+        "verdict_boolean_corr": corr,
+        "inverted_flag": inverted,
+        "agree_raw_pct": agree_rate(False),
+        "agree_corrected_pct": agree_rate(True) if inverted else agree_rate(False),
+    }
 
-    # ---- Q6: manual vs no manual ----
-    line("## Q6 - Baseline WITH manual vs WITHOUT manual (matched pairs)")
-    line("")
-    if "baseline_withmanual" in loaded and "baseline_nomanual" in loaded:
-        mp = matched_pairs(loaded["baseline_withmanual"]["views"],
-                           loaded["baseline_nomanual"]["views"])
-        R["Q6_manual"] = mp
-        line("A = WITH manual, B = WITHOUT manual.")
-        line("")
-        line("| metric | value |")
-        line("|---|---|")
-        for kk, vv in mp.items():
-            line("| %s | %s |" % (kk, ("%.2f" % vv) if isinstance(vv, float) else vv))
-        line("")
-    else:
-        line("- Cannot compare: one of the baseline files is missing.")
-        line("")
+    return {
+        "total_views": total_views,
+        "dropped": len(dropped),
+        "dropped_by_stage": dict(dropped_by_stage),
+        "parsed": len(parsed),
+        "acc": acc,
+        "verdict_counts": dict(verdict_counts),
+        "bias": bias,
+        "conf": conf,
+    }
 
-    # ---- Missing / to-run guidance ----
-    line("## What is still missing / to run")
-    line("")
-    if not missing:
-        line("All expected `_full*.json` datasets were found. Nothing else is required "
-             "to answer Q1-Q6.")
-    else:
-        for key in missing:
-            line("- **%s**: none of %s present." %
-                 (key, ", ".join("`%s`" % n for n in FILE_CANDIDATES[key])))
-    line("")
-    line("Note: this script only reads `*_full*.json`. Per-chunk completeness "
-         "(gaps/overlaps/corruption) is the job of the existing read-only "
-         "`check_progress.py`; run that separately if you want chunk-level status.")
-    line("")
 
-    # ---- Write outputs (never overwrite) ----
-    md_path = safe_out_path(directory, "debate_analysis_report.md")
-    json_path = safe_out_path(directory, "debate_analysis_report.json")
-    with open(md_path, "w", encoding="utf-8") as f:
-        f.write("\n".join(md) + "\n")
-    with open(json_path, "w", encoding="utf-8") as f:
-        json.dump(R, f, indent=2, ensure_ascii=False)
+# --------------------------------------------------------------------------- #
+# reporting
+# --------------------------------------------------------------------------- #
+def build_report(results):
+    L = []
+    w = L.append
+    w("# AI-Debate XMLC - analysis report (v2)\n")
+    w(f"Directory scanned: `{SCAN_DIR}`\n")
 
-    print("Wrote:")
-    print("  %s" % md_path)
-    print("  %s" % json_path)
-    print("(no result files were modified)")
+    # ---- Section: parsed vs dropped -------------------------------------- #
+    w("## Parse filter (un-parsable / Unknown judge outputs DROPPED)\n")
+    w("| dataset | total views | parsed (kept) | dropped | dropped % |")
+    w("|---|---|---|---|---|")
+    for name, r in results.items():
+        w(f"| {name} | {r['total_views']} | {r['parsed']} | "
+          f"{r['dropped']} | {pct(r['dropped'], r['total_views']):.2f} |")
+    w("")
+    w("Dropped-by-stage detail:\n")
+    for name, r in results.items():
+        if r["dropped"]:
+            detail = ", ".join(f"{k}: {v}" for k, v in sorted(r["dropped_by_stage"].items()))
+            w(f"- **{name}**: {r['dropped']} dropped ({detail})")
+    w("")
+
+    # ---- Section: accuracy (parsed only) --------------------------------- #
+    w("## Accuracy on PARSED-ONLY views (overall + per stage)\n")
+    for name, r in results.items():
+        w(f"### {name}\n")
+        w("| scope | n | correct | accuracy % |")
+        w("|---|---|---|---|")
+        for st in ["ALL"] + list(STAGE_TRUE_LABEL):
+            if st in r["acc"]:
+                c, n = r["acc"][st]
+                w(f"| {st} | {n} | {c} | {pct(c, n):.2f} |")
+        w(f"\nVerdict counts (parsed): {json.dumps(r['verdict_counts'])}\n")
+
+    # ---- Section: Yes-bias ----------------------------------------------- #
+    w("## Yes-bias (predicted-Yes rate vs true-Yes rate)\n")
+    w("Positive `yes_bias_delta` = judge says 'belongs' more often than truth warrants.\n")
+    for name, r in results.items():
+        w(f"### {name}\n")
+        w("| scope | n | pred Yes % | true Yes % | bias delta | false-Yes % | false-No % |")
+        w("|---|---|---|---|---|---|---|")
+        for st in ["ALL"] + list(STAGE_TRUE_LABEL):
+            if st in r["bias"]:
+                b = r["bias"][st]
+                w(f"| {st} | {b['n']} | {b['pred_yes_rate']:.2f} | {b['true_yes_rate']:.2f} | "
+                  f"{b['yes_bias_delta']:+.2f} | {b['false_yes_rate']:.2f} | {b['false_no_rate']:.2f} |")
+        w("")
+
+    # ---- Section: confidence anomaly ------------------------------------- #
+    w("## Confidence framing consistency + inversion check\n")
+    w("`corr` = Pearson(verdict_prob_belongs, boolean_prob_true). Strongly negative "
+      "=> boolean framing is INVERTED (log-prob extraction bug; see README). "
+      "`agree_corrected` re-orients the boolean framing so you can read the true agreement now.\n")
+    w("| dataset | n conf | mean P(belongs) | mean P(true) raw | corr | inverted? | agree raw % | agree corrected % |")
+    w("|---|---|---|---|---|---|---|---|")
+    for name, r in results.items():
+        c = r["conf"]
+        def f(x, nd=3):
+            return f"{x:.{nd}f}" if isinstance(x, float) else "-"
+        w(f"| {name} | {c['n_conf']} | {f(c['mean_P_belongs'])} | {f(c['mean_P_true_raw'])} | "
+          f"{f(c['verdict_boolean_corr'])} | {'YES' if c['inverted_flag'] else 'no'} | "
+          f"{f(c['agree_raw_pct'],2)} | {f(c['agree_corrected_pct'],2)} |")
+    w("")
+    return "\n".join(L)
+
+
+def main():
+    results = {}
+    print(f"Scanning: {SCAN_DIR}\n")
+    for name, fname in DATASETS.items():
+        path = os.path.join(SCAN_DIR, fname)
+        if not os.path.isfile(path):
+            print(f"[skip] {name}: {fname} not found")
+            continue
+        try:
+            with open(path, "r", encoding="utf-8") as fh:
+                data = json.load(fh)
+        except Exception as e:
+            print(f"[warn] {name}: could not read ({e})")
+            continue
+        if isinstance(data, dict):
+            data = data.get("results", data.get("records", list(data.values())))
+        if not isinstance(data, list):
+            print(f"[warn] {name}: unexpected structure, skipping")
+            continue
+        r = analyze_dataset(name, data)
+        results[name] = r
+        print(f"[ok] {name}: {r['parsed']} parsed / {r['total_views']} views "
+              f"({r['dropped']} DROPPED as unparsable)")
+
+    if not results:
+        print("No datasets analyzed.")
+        sys.exit(1)
+
+    md = build_report(results)
+    with open(os.path.join(SCAN_DIR, "debate_analysis_report_v2.md"), "w", encoding="utf-8") as fh:
+        fh.write(md)
+    with open(os.path.join(SCAN_DIR, "debate_analysis_report_v2.json"), "w", encoding="utf-8") as fh:
+        json.dump(results, fh, indent=2)
+
+    print("\nWrote debate_analysis_report_v2.md and .json")
+    print("\n--- DROP SUMMARY ---")
+    for name, r in results.items():
+        print(f"{name:24s} dropped {r['dropped']:5d} / {r['total_views']:5d} "
+              f"({pct(r['dropped'], r['total_views']):.2f}%)")
 
 
 if __name__ == "__main__":
