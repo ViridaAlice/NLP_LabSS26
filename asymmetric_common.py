@@ -25,8 +25,8 @@ STAGES = [
 ]
 
 SOURCE_BASENAMES = {
-    "statement": "pydantic_statement_results_chunk{chunk_id}.json",
-    "interactive": "pydantic_interactive_results_chunk{chunk_id}.json",
+    "statement": "pydantic_statement_results_full.json",
+    "interactive": "interactive_results_full.json",
 }
 
 
