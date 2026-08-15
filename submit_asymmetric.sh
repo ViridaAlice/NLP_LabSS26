@@ -12,12 +12,13 @@
 # Judge-only asymmetric rerun.
 #
 # This script intentionally does NOT invoke asymmetric_baseline.py and does not
-# reference any 2B/4B larger-judge result or checkpoint. For each chunk it:
-#   1. rejudges the previously saved 2B statement arguments with the 0.8B judge;
-#   2. rejudges the previously saved 2B ABA transcript with the 0.8B judge.
+# read or write any 4B result/checkpoint. Every array task reads the same two
+# complete source files, but asymmetric_common.py selects a disjoint quarter:
 #
-# asymmetric_statement.py and asymmetric_interactive.py must remain judge-only:
-# they reuse saved text and load only ./Qwen3.5-0.8B.
+#   results/pydantic_statement_results_full.json
+#   results/interactive_results_full_rejudge2B.json
+#
+# The saved 2B debater text is reused verbatim. Only ./Qwen3.5-0.8B is loaded.
 
 set -euo pipefail
 
@@ -52,25 +53,17 @@ fi
     exit 2
 }
 
-source_exists() {
-    local basename="$1"
-    [[ -f "$basename" || -f "results/$basename" ]] && return 0
-    find results -type f -name "$basename" -print -quit 2>/dev/null | grep -q .
-}
+STATEMENT_SOURCE="results/pydantic_statement_results_full.json"
+INTERACTIVE_SOURCE="results/interactive_results_full_rejudge2B.json"
 
-STATEMENT_SOURCE="pydantic_statement_results_chunk${CHUNK_ID}.json"
-INTERACTIVE_SOURCE="pydantic_interactive_results_chunk${CHUNK_ID}.json"
-
-if ! source_exists "$STATEMENT_SOURCE"; then
+[[ -f "$STATEMENT_SOURCE" ]] || {
     echo "ERROR: Saved statement source is missing: $STATEMENT_SOURCE" >&2
-    echo "Run python3 inspect_saved_debate_sources.py before submitting." >&2
     exit 2
-fi
-if ! source_exists "$INTERACTIVE_SOURCE"; then
+}
+[[ -f "$INTERACTIVE_SOURCE" ]] || {
     echo "ERROR: Saved interactive source is missing: $INTERACTIVE_SOURCE" >&2
-    echo "Run python3 inspect_saved_debate_sources.py before submitting." >&2
     exit 2
-fi
+}
 
 COMMON_ARGS=(
     --chunk_id "$CHUNK_ID"
@@ -81,12 +74,18 @@ if [[ "${TEST_MODE:-0}" == "1" ]]; then
 fi
 
 echo "Job ${SLURM_JOB_ID}; task ${CHUNK_ID}; judge-only asymmetric rerun"
-echo "No baseline, 2B debater, or 4B program will be invoked."
+echo "Statement source:   ${STATEMENT_SOURCE}"
+echo "Interactive source: ${INTERACTIVE_SOURCE}"
+echo "No baseline, debater model, or 4B program will be invoked."
 
 echo "Phase 1/2: saved 2B statement arguments -> title-only 0.8B judge"
-python3 -u asymmetric_statement.py "${COMMON_ARGS[@]}"
+python3 -u asymmetric_statement.py \
+    "${COMMON_ARGS[@]}" \
+    --source_file "$STATEMENT_SOURCE"
 
 echo "Phase 2/2: saved 2B ABA transcript -> title-only 0.8B judge"
-python3 -u asymmetric_interactive.py "${COMMON_ARGS[@]}"
+python3 -u asymmetric_interactive.py \
+    "${COMMON_ARGS[@]}" \
+    --source_file "$INTERACTIVE_SOURCE"
 
 echo "Both judge-only phases complete for chunk ${CHUNK_ID}."

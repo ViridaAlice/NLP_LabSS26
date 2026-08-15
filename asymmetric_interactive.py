@@ -21,7 +21,7 @@ from asymmetric_common import (
 )
 
 JUDGE_MODEL_ID = "./Qwen3.5-0.8B"
-SOURCE_DEBATER_MODEL_ID = "./Qwen3.5-2B"
+REUSED_DEBATER_MODEL_ID = "./Qwen3.5-2B"
 EXPERIMENT_ID = "asymmetric_titleonly_interactive_aba"
 
 
@@ -89,6 +89,7 @@ def main():
         "interactive",
         title_index,
         args.chunk_id,
+        args.total_chunks,
         explicit_path=args.source_file,
         test_mode=args.test_mode,
     )
@@ -101,7 +102,7 @@ def main():
         "interactive_aba",
         args,
         judge_model=JUDGE_MODEL_ID,
-        debater_model=SOURCE_DEBATER_MODEL_ID,
+        debater_model=REUSED_DEBATER_MODEL_ID,
     )
     metadata.update(
         {

@@ -24,9 +24,11 @@ STAGES = [
     ("Round 3: Similar Tag", "No"),
 ]
 
+# These are the two existing full-result files whose saved 2B debater text is
+# reused by the asymmetric statement and interactive judge-only runs.
 SOURCE_BASENAMES = {
     "statement": "pydantic_statement_results_full.json",
-    "interactive": "interactive_results_full.json",
+    "interactive": "interactive_results_full_rejudge2B.json",
 }
 
 
@@ -41,8 +43,8 @@ def parse_args(description, allow_source=False):
             "--source_file",
             default=None,
             help=(
-                "Exact earlier debate JSON to reuse. If omitted, the script finds "
-                "the expected pydantic_*_results_chunkN.json file automatically."
+                "Exact earlier full-result debate JSON to reuse. If omitted, the "
+                "script finds the expected full-result file in results/."
             ),
         )
     return parser.parse_args()
@@ -103,15 +105,23 @@ def build_title_index(dataset):
     return titles
 
 
-def select_chunk(dataset, chunk_id, total_chunks, test_mode=False):
+def validate_chunk(chunk_id, total_chunks):
     if total_chunks < 1:
         raise ValueError("--total_chunks must be at least 1")
     if chunk_id < 0 or chunk_id >= total_chunks:
         raise ValueError("--chunk_id must satisfy 0 <= chunk_id < total_chunks")
 
-    chunk_size = (len(dataset) + total_chunks - 1) // total_chunks
+
+def chunk_bounds(length, chunk_id, total_chunks):
+    validate_chunk(chunk_id, total_chunks)
+    chunk_size = (length + total_chunks - 1) // total_chunks
     start_idx = chunk_id * chunk_size
-    end_idx = min(start_idx + chunk_size, len(dataset))
+    end_idx = min(start_idx + chunk_size, length)
+    return start_idx, end_idx
+
+
+def select_chunk(dataset, chunk_id, total_chunks, test_mode=False):
+    start_idx, end_idx = chunk_bounds(len(dataset), chunk_id, total_chunks)
     selected = dataset[start_idx:end_idx]
 
     if test_mode:
@@ -248,7 +258,7 @@ def normalize_yes_no(value, stage=""):
     return ""
 
 
-def locate_source_file(kind, chunk_id, explicit_path=None):
+def locate_source_file(kind, explicit_path=None):
     if explicit_path:
         path = os.path.abspath(explicit_path)
         if not os.path.isfile(path):
@@ -258,10 +268,9 @@ def locate_source_file(kind, chunk_id, explicit_path=None):
     if kind not in SOURCE_BASENAMES:
         raise ValueError("Unknown source debate kind: %s" % kind)
 
-    basename = SOURCE_BASENAMES[kind].format(chunk_id=chunk_id)
+    basename = SOURCE_BASENAMES[kind]
     candidates = set()
-    direct_paths = [basename, os.path.join(RESULTS_DIR, basename)]
-    for path in direct_paths:
+    for path in (basename, os.path.join(RESULTS_DIR, basename)):
         if os.path.isfile(path):
             candidates.add(os.path.abspath(path))
 
@@ -273,8 +282,8 @@ def locate_source_file(kind, chunk_id, explicit_path=None):
     candidates = sorted(candidates)
     if not candidates:
         raise FileNotFoundError(
-            "Could not find the earlier %s debate file %s. Either place it in "
-            "%s/ or pass --source_file PATH."
+            "Could not find the earlier %s debate file %s. Expected it in %s/ "
+            "or pass --source_file PATH."
             % (kind, basename, RESULTS_DIR)
         )
     if len(candidates) > 1:
@@ -350,22 +359,25 @@ def load_source_debate_cases(
     kind,
     title_index,
     chunk_id,
+    total_chunks,
     explicit_path=None,
     test_mode=False,
 ):
     """
-    Load saved 2B debate text. This function never loads or invokes a debater model.
-    Invalid/incomplete source records are reported and skipped; a later rerun can add
-    them after the original debate-producing job has completed them.
+    Load saved 2B debate text from one full-result JSON and select this task's
+    disjoint chunk. This function never loads or invokes a debater model.
     """
-    source_path = locate_source_file(kind, chunk_id, explicit_path)
+    validate_chunk(chunk_id, total_chunks)
+    source_path = locate_source_file(kind, explicit_path)
     with open(source_path, "r", encoding="utf-8") as handle:
         payload = json.load(handle)
     records = extract_results(payload)
     if records is None:
-        raise RuntimeError("Source file has no results/records/data/items list: %s" % source_path)
+        raise RuntimeError(
+            "Source file has no results/records/data/items list: %s" % source_path
+        )
 
-    cases = []
+    all_cases = []
     seen = {}
     skipped = []
 
@@ -420,7 +432,9 @@ def load_source_debate_cases(
                 )
             )
             if not argument_is_valid(pro_argument) or not argument_is_valid(con_argument):
-                skipped.append((source_index, "missing/invalid saved PRO or CON argument"))
+                skipped.append(
+                    (source_index, "missing/invalid saved PRO or CON argument")
+                )
                 continue
             case["pro_argument"] = pro_argument
             case["con_argument"] = con_argument
@@ -434,7 +448,9 @@ def load_source_debate_cases(
             a_turn2 = stringify(
                 first_value(record, ("a_turn2", "a_rebuttal", "debater_a_turn2"))
             )
-            if not all(argument_is_valid(value) for value in (a_turn1, b_turn1, a_turn2)):
+            if not all(
+                argument_is_valid(value) for value in (a_turn1, b_turn1, a_turn2)
+            ):
                 skipped.append((source_index, "missing/invalid saved ABA turn"))
                 continue
             case["a_turn1"] = a_turn1
@@ -458,15 +474,27 @@ def load_source_debate_cases(
             continue
 
         seen[key] = case
-        cases.append(case)
+        all_cases.append(case)
 
+    if not all_cases:
+        raise RuntimeError("No usable saved debates found in %s" % source_path)
+
+    # Both source files are full 3,000-record outputs. Partition the reusable
+    # cases here so the four Slurm tasks do not each judge all 3,000 records.
+    start_idx, end_idx = chunk_bounds(len(all_cases), chunk_id, total_chunks)
+    cases = all_cases[start_idx:end_idx]
     if test_mode:
         cases = _test_subset(cases, number_of_pmids=5)
 
     print("[SOURCE] Reusing saved %s debates: %s" % (kind, source_path), flush=True)
     print(
-        "[SOURCE] %d raw records | %d usable records | %d skipped"
-        % (len(records), len(cases), len(skipped)),
+        "[SOURCE] %d raw records | %d usable total | %d skipped"
+        % (len(records), len(all_cases), len(skipped)),
+        flush=True,
+    )
+    print(
+        "[SOURCE CHUNK] %d/%d | usable rows %d:%d | selected debates: %d"
+        % (chunk_id + 1, total_chunks, start_idx, end_idx, len(cases)),
         flush=True,
     )
     for source_index, reason in skipped[:10]:
@@ -474,7 +502,10 @@ def load_source_debate_cases(
     if len(skipped) > 10:
         print("[SOURCE WARNING] ... and %d more" % (len(skipped) - 10), flush=True)
     if not cases:
-        raise RuntimeError("No usable saved debates found in %s" % source_path)
+        raise RuntimeError(
+            "No usable saved debates selected for chunk %d/%d from %s"
+            % (chunk_id, total_chunks, source_path)
+        )
 
     return cases, source_path, len(records), len(skipped)
 

@@ -31,16 +31,17 @@ ASYMMETRIC_RUNS = [
     ),
 ]
 
+# The asymmetric judge-only runs reuse these exact full-result source files.
 SOURCE_RUNS = [
     (
-        "Saved statement debates required by asymmetric statement",
+        "Saved statement debates: pydantic_statement_results_full.json",
         "statement",
-        re.compile(r"^pydantic_statement_results_chunk\d+\.json$", re.IGNORECASE),
+        re.compile(r"^pydantic_statement_results_full\.json$", re.IGNORECASE),
     ),
     (
-        "Saved interactive debates required by asymmetric ABA",
+        "Saved interactive debates: interactive_results_full_rejudge2B.json",
         "interactive",
-        re.compile(r"^pydantic_interactive_results_chunk\d+\.json$", re.IGNORECASE),
+        re.compile(r"^interactive_results_full_rejudge2B\.json$", re.IGNORECASE),
     ),
 ]
 
@@ -412,12 +413,12 @@ def print_source_run(label, files, summary):
 
     print("")
     print(label)
-    print("  Status:            %s" % status)
-    print("  Unique usable:     %d / %d" % (summary["unique"], EXPECTED))
-    print("  Matching files:    %d" % len(files))
-    print("  Raw source records:%d" % summary["raw"])
-    print("  Invalid debates:   %d" % summary["invalid"])
-    print("  Duplicate debates: %d" % summary["duplicates"])
+    print("  Status:             %s" % status)
+    print("  Unique usable:      %d / %d" % (summary["unique"], EXPECTED))
+    print("  Matching files:     %d" % len(files))
+    print("  Raw source records: %d" % summary["raw"])
+    print("  Invalid debates:    %d" % summary["invalid"])
+    print("  Duplicate debates:  %d" % summary["duplicates"])
     for path, records in files:
         print("    - %s (%d records)" % (path, len(records)))
     if not files:
@@ -510,7 +511,7 @@ def main():
     print("")
     print("=" * 78)
     print("SAVED 2B DEBATE SOURCE CHECK")
-    print("Statement and interactive asymmetric jobs reuse these texts verbatim.")
+    print("Statement and interactive asymmetric jobs reuse these exact full files.")
     print("=" * 78)
 
     source_summaries = {}
@@ -523,7 +524,7 @@ def main():
     print("")
     print("=" * 78)
     print("ASYMMETRIC TITLE-ONLY JUDGE COMPLETION CHECK")
-    print("The statement and ABA phases load only the 0.8B judge, not the 2B debater.")
+    print("Statement and ABA load only the 0.8B judge, not a debater model.")
     print("=" * 78)
 
     asymmetric_complete = True
@@ -536,17 +537,26 @@ def main():
         if not summary["complete"]:
             asymmetric_complete = False
 
+    baseline_needed = not asymmetric_summaries[
+        "asymmetric_titleonly_baseline"
+    ]["complete"]
+    statement_needed = not asymmetric_summaries[
+        "asymmetric_titleonly_statement"
+    ]["complete"]
+    interactive_needed = not asymmetric_summaries[
+        "asymmetric_titleonly_interactive_aba"
+    ]["complete"]
+    judge_only_needed = statement_needed or interactive_needed
+
     print("")
     print("=" * 78)
     if asymmetric_complete:
         print("ASYMMETRIC PIPELINE COMPLETE: do not restart submit_asymmetric.sh.")
     else:
-        statement_needed = not asymmetric_summaries[
-            "asymmetric_titleonly_statement"
-        ]["complete"]
-        interactive_needed = not asymmetric_summaries[
-            "asymmetric_titleonly_interactive_aba"
-        ]["complete"]
+        if baseline_needed:
+            print("WARNING: the asymmetric baseline is incomplete.")
+            print("submit_asymmetric.sh intentionally does NOT run the baseline.")
+
         missing_sources = []
         if statement_needed and not source_summaries["statement"]["complete"]:
             missing_sources.append("statement")
@@ -554,29 +564,23 @@ def main():
             missing_sources.append("interactive")
 
         if missing_sources:
-            print("ASYMMETRIC PIPELINE IS BLOCKED BY INCOMPLETE SAVED DEBATES.")
+            print("ASYMMETRIC JUDGE-ONLY RERUN IS BLOCKED BY INCOMPLETE SAVED DEBATES.")
             print(
-                "First resume the ORIGINAL %s debate-producing job(s)."
-                % " and ".join(missing_sources)
+                "Required exact source(s): %s"
+                % ", ".join(missing_sources)
             )
             print("Do not regenerate debates inside the asymmetric scripts.")
-            print(
-                "After the source files reach 3,000 usable debates, rerun this checker "
-                "and then resume submit_asymmetric.sh."
-            )
-        else:
-            next_label = next(
-                label
-                for label, experiment_id in ASYMMETRIC_RUNS
-                if not asymmetric_summaries[experiment_id]["complete"]
-            )
-            print("ASYMMETRIC PIPELINE NEEDS ANOTHER JUDGE-ONLY RESUME ROUND.")
-            print("Earliest incomplete phase: %s" % next_label)
+        elif judge_only_needed:
+            print("ASYMMETRIC STATEMENT/INTERACTIVE NEED ANOTHER JUDGE-ONLY ROUND.")
+            print("The two exact full debate sources are available.")
             print("First ensure no asym_title array is running or pending:")
             print("  squeue -u \"$USER\" -n asym_title")
             print("If that command shows no jobs, restart safely with:")
             print("  sbatch submit_asymmetric.sh")
+            print("This script does not run the baseline and does not touch 4B outputs.")
             print("Do not run overlapping copies; they write the same checkpoints.")
+        else:
+            print("Do not run submit_asymmetric.sh: statement and interactive are complete.")
 
     if unreadable:
         print("")
@@ -589,6 +593,7 @@ def main():
         print("All four larger-judge baseline runs are complete.")
     else:
         print("One or more larger-judge baseline runs still need their own resume job.")
+        print("submit_asymmetric.sh does not read, write, or resume those 4B outputs.")
 
     all_complete = larger_complete and asymmetric_complete and not unreadable
     if all_complete:

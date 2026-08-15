@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Locate JSON files that appear to contain reusable statement/ABA debates."""
+"""Inspect the exact full-result JSON files reused by asymmetric judging."""
 
 from __future__ import annotations
 
@@ -43,6 +43,11 @@ IDENTITY = {
     "debater_a_side",
 }
 
+EXPECTED_SOURCES = (
+    ("statement", Path("results/pydantic_statement_results_full.json")),
+    ("interactive", Path("results/interactive_results_full_rejudge2B.json")),
+)
+
 
 def extract_records(payload):
     if isinstance(payload, list):
@@ -70,32 +75,47 @@ def classify(keys: set[str]) -> list[str]:
     return kinds
 
 
-def main() -> int:
-    matches = []
-    unreadable = []
+def record_keys(records):
+    keys = set()
+    for record in records[:50]:
+        if isinstance(record, dict):
+            keys.update(record)
+    return keys
 
-    for path in sorted(Path(".").rglob("*.json")):
-        if skipped(path):
+
+def main() -> int:
+    print("Exact full-result files used by the asymmetric programs:")
+    exact_ok = True
+
+    for expected_kind, path in EXPECTED_SOURCES:
+        if not path.is_file():
+            exact_ok = False
+            print(f"  MISSING  {expected_kind:11s}  {path}")
             continue
+
         try:
             with path.open("r", encoding="utf-8") as handle:
                 payload = json.load(handle)
         except Exception as exc:
-            unreadable.append((path, exc))
+            exact_ok = False
+            print(f"  UNREADABLE {expected_kind:10s}  {path}: {exc}")
             continue
 
         records = extract_records(payload)
-        if not records:
+        if records is None:
+            exact_ok = False
+            print(f"  INVALID  {expected_kind:11s}  {path}: no results list")
             continue
 
-        keys = set()
-        for record in records[:50]:
-            if isinstance(record, dict):
-                keys.update(record)
+        keys = record_keys(records)
         kinds = classify(keys)
-        if not kinds:
-            continue
-
+        status = "OK" if expected_kind in kinds else "FIELDS NOT RECOGNIZED"
+        if status != "OK":
+            exact_ok = False
+        print(
+            f"  {status:21s} records={len(records):5d}  "
+            f"expected={expected_kind:11s}  {path}"
+        )
         relevant = sorted(
             keys
             & (
@@ -107,31 +127,40 @@ def main() -> int:
                 | IDENTITY
             )
         )
-        matches.append((path, len(records), ",".join(kinds), relevant))
+        print("    relevant keys: " + (", ".join(relevant) or "NONE"))
 
-    print("Reusable-debate candidates (archive/model/venv directories excluded):")
+    print("\nOther reusable-debate candidates (informational only):")
+    matches = []
+    unreadable = []
+    expected_resolved = {path.resolve() for _, path in EXPECTED_SOURCES if path.exists()}
+
+    for path in sorted(Path(".").rglob("*.json")):
+        if skipped(path) or path.resolve() in expected_resolved:
+            continue
+        try:
+            with path.open("r", encoding="utf-8") as handle:
+                payload = json.load(handle)
+        except Exception as exc:
+            unreadable.append((path, exc))
+            continue
+
+        records = extract_records(payload)
+        if not records:
+            continue
+        keys = record_keys(records)
+        kinds = classify(keys)
+        if kinds:
+            matches.append((path, len(records), ",".join(kinds)))
+
     if not matches:
-        print("  NONE FOUND")
-    for path, count, kinds, relevant in matches:
+        print("  NONE")
+    for path, count, kinds in matches:
         print(f"  {kinds:21s} records={count:5d}  {path}")
-        print("    relevant keys: " + ", ".join(relevant))
-
-    print("\nExact filenames currently expected by the asymmetric programs:")
-    for chunk in range(4):
-        for kind in ("statement", "interactive"):
-            name = f"pydantic_{kind}_results_chunk{chunk}.json"
-            found = [
-                path
-                for path in (Path(name), Path("results") / name)
-                if path.is_file()
-            ]
-            state = str(found[0]) if found else "MISSING"
-            print(f"  {name}: {state}")
 
     if unreadable:
-        print(f"\nNote: {len(unreadable)} JSON file(s) could not be read.")
+        print(f"\nNote: {len(unreadable)} unrelated JSON file(s) could not be read.")
 
-    return 0 if matches else 1
+    return 0 if exact_ok else 1
 
 
 if __name__ == "__main__":
