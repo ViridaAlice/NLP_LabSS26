@@ -70,6 +70,8 @@ def main():
         judge_model=JUDGE_MODEL_ID,
     )
     metadata["judge_information"] = ["title", "candidate_tag"]
+    metadata["debater_outputs_reused"] = False
+    metadata["case_source"] = "pubmed_xmlc_dataset.json"
 
     if all_cases_complete(cases, completed):
         print("[COMPLETE] Baseline chunk already contains all records; no model load needed.")
@@ -85,9 +87,8 @@ def main():
         if key in completed:
             continue
 
-        messages = build_judge_messages(case["title"], case["candidate_tag"])
         prediction, raw_judge = generate_structured(
-            messages,
+            build_judge_messages(case["title"], case["candidate_tag"]),
             judge_model,
             judge_tokenizer,
             JudgeResponse,
@@ -107,6 +108,7 @@ def main():
             "is_correct": is_correct,
             "generation_complete": generation_complete,
             "judge_received_abstract": False,
+            "judge_received_debate": False,
             "judge_output": raw_judge,
         }
         records_by_key[key] = record

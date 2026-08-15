@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import glob
 import hashlib
 import json
 import os
@@ -23,13 +24,27 @@ STAGES = [
     ("Round 3: Similar Tag", "No"),
 ]
 
+SOURCE_BASENAMES = {
+    "statement": "pydantic_statement_results_chunk{chunk_id}.json",
+    "interactive": "pydantic_interactive_results_chunk{chunk_id}.json",
+}
 
-def parse_args(description):
+
+def parse_args(description, allow_source=False):
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument("--test_mode", action="store_true")
     parser.add_argument("--verbose", action="store_true")
     parser.add_argument("--chunk_id", type=int, default=0)
     parser.add_argument("--total_chunks", type=int, default=1)
+    if allow_source:
+        parser.add_argument(
+            "--source_file",
+            default=None,
+            help=(
+                "Exact earlier debate JSON to reuse. If omitted, the script finds "
+                "the expected pydantic_*_results_chunkN.json file automatically."
+            ),
+        )
     return parser.parse_args()
 
 
@@ -39,14 +54,18 @@ def stringify(value):
     if isinstance(value, str):
         return value.strip()
     if isinstance(value, list):
-        return " ".join(part for part in (stringify(item) for item in value) if part).strip()
+        return " ".join(
+            part for part in (stringify(item) for item in value) if part
+        ).strip()
     if isinstance(value, dict):
         for key in ("#text", "text", "value", "content"):
             if key in value:
                 text = stringify(value[key])
                 if text:
                     return text
-        return " ".join(part for part in (stringify(item) for item in value.values()) if part).strip()
+        return " ".join(
+            part for part in (stringify(item) for item in value.values()) if part
+        ).strip()
     return str(value).strip()
 
 
@@ -65,6 +84,23 @@ def load_dataset(path=DATASET_PATH):
     if not isinstance(payload, list):
         raise ValueError("The dataset JSON must contain a top-level list of articles.")
     return payload
+
+
+def build_title_index(dataset):
+    titles = {}
+    for article_index, article in enumerate(dataset):
+        if not isinstance(article, dict):
+            raise ValueError("Article %d is not a JSON object" % article_index)
+        pmid = stringify(article.get("pmid"))
+        title = article_title(article)
+        if not pmid:
+            raise ValueError("Article %d has no PMID" % article_index)
+        if not title:
+            raise ValueError("PMID %s has no usable title" % pmid)
+        if pmid in titles and titles[pmid] != title:
+            raise ValueError("Duplicate PMID with conflicting titles: %s" % pmid)
+        titles[pmid] = title
+    return titles
 
 
 def select_chunk(dataset, chunk_id, total_chunks, test_mode=False):
@@ -97,11 +133,8 @@ def stable_index(length, *parts):
     return int.from_bytes(digest[:8], "big") % length
 
 
-def stable_bool(*parts):
-    return bool(stable_index(2, *parts))
-
-
 def build_cases(dataset):
+    """Build title-only baseline cases. Debate rejudging does not use this function."""
     cases = []
     seen_pmids = set()
 
@@ -118,10 +151,7 @@ def build_cases(dataset):
 
         title = article_title(article)
         if not title:
-            raise ValueError(
-                "PMID %s has no usable title. Checked title, article_title, "
-                "ArticleTitle, and paper_title." % pmid
-            )
+            raise ValueError("PMID %s has no usable title" % pmid)
 
         correct_tags_raw = article.get("mesh_tags", [])
         if not isinstance(correct_tags_raw, list) or not correct_tags_raw:
@@ -130,14 +160,11 @@ def build_cases(dataset):
         if not correct_tags:
             raise ValueError("PMID %s has no usable MeSH tags" % pmid)
 
-        abstract = stringify(article.get("abstract", ""))
-
         for stage_name, ground_truth in STAGES:
             if stage_name == "Round 1: True Tag":
                 candidate_tag = correct_tags[
                     stable_index(len(correct_tags), "candidate", stage_name, pmid)
                 ]
-                assigned_tags = [tag for tag in correct_tags if tag != candidate_tag]
             elif stage_name == "Round 2: Unrelated Tag":
                 candidate_tag = stringify(
                     article.get(
@@ -145,10 +172,8 @@ def build_cases(dataset):
                         article.get("negative_test_tag", ""),
                     )
                 )
-                assigned_tags = list(correct_tags)
             else:
                 candidate_tag = stringify(article.get("similar_negative_test_tag", ""))
-                assigned_tags = list(correct_tags)
 
             if not candidate_tag or candidate_tag.lower() == "unknown":
                 raise ValueError(
@@ -161,13 +186,297 @@ def build_cases(dataset):
                     "stage": stage_name,
                     "ground_truth": ground_truth,
                     "title": title,
-                    "abstract": abstract,
-                    "assigned_tags": assigned_tags,
                     "candidate_tag": candidate_tag,
                 }
             )
 
     return cases
+
+
+def extract_results(payload):
+    if isinstance(payload, list):
+        return payload
+    if isinstance(payload, dict):
+        for key in ("results", "records", "data", "items"):
+            value = payload.get(key)
+            if isinstance(value, list):
+                return value
+    return None
+
+
+def first_value(record, names):
+    if not isinstance(record, dict):
+        return None
+    for name in names:
+        if name in record and record[name] is not None:
+            return record[name]
+    return None
+
+
+def parse_bool(value):
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, int) and value in (0, 1):
+        return bool(value)
+    text = stringify(value).lower()
+    if text in ("true", "1", "yes", "pro", "pro_first"):
+        return True
+    if text in ("false", "0", "no", "con", "con_first"):
+        return False
+    return None
+
+
+def normalize_yes_no(value, stage=""):
+    if isinstance(value, bool):
+        return "Yes" if value else "No"
+    text = stringify(value).lower()
+    if text in ("yes", "true", "1", "positive", "belongs"):
+        return "Yes"
+    if text in ("no", "false", "0", "negative", "does not belong"):
+        return "No"
+
+    stage_text = stringify(stage).lower()
+    if "true tag" in stage_text or "round 1" in stage_text:
+        return "Yes"
+    if (
+        "unrelated" in stage_text
+        or "similar tag" in stage_text
+        or "round 2" in stage_text
+        or "round 3" in stage_text
+    ):
+        return "No"
+    return ""
+
+
+def locate_source_file(kind, chunk_id, explicit_path=None):
+    if explicit_path:
+        path = os.path.abspath(explicit_path)
+        if not os.path.isfile(path):
+            raise FileNotFoundError("Source debate file does not exist: %s" % path)
+        return path
+
+    if kind not in SOURCE_BASENAMES:
+        raise ValueError("Unknown source debate kind: %s" % kind)
+
+    basename = SOURCE_BASENAMES[kind].format(chunk_id=chunk_id)
+    candidates = set()
+    direct_paths = [basename, os.path.join(RESULTS_DIR, basename)]
+    for path in direct_paths:
+        if os.path.isfile(path):
+            candidates.add(os.path.abspath(path))
+
+    recursive_pattern = os.path.join(RESULTS_DIR, "**", basename)
+    for path in glob.glob(recursive_pattern, recursive=True):
+        if os.path.isfile(path):
+            candidates.add(os.path.abspath(path))
+
+    candidates = sorted(candidates)
+    if not candidates:
+        raise FileNotFoundError(
+            "Could not find the earlier %s debate file %s. Either place it in "
+            "%s/ or pass --source_file PATH."
+            % (kind, basename, RESULTS_DIR)
+        )
+    if len(candidates) > 1:
+        raise RuntimeError(
+            "Multiple source files match %s; use --source_file to choose exactly one:\n  %s"
+            % (basename, "\n  ".join(candidates))
+        )
+    return candidates[0]
+
+
+def file_sha256(path):
+    digest = hashlib.sha256()
+    with open(path, "rb") as handle:
+        for block in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def _source_identity(record):
+    pmid = stringify(first_value(record, ("pmid", "PMID", "article_id")))
+    stage = stringify(
+        first_value(record, ("stage", "round", "round_name", "evaluation_stage"))
+    )
+    candidate_tag = stringify(
+        first_value(
+            record,
+            ("candidate_tag", "candidate_mesh_tag", "mesh_tag", "tag"),
+        )
+    )
+    ground_truth = normalize_yes_no(
+        first_value(
+            record,
+            ("ground_truth", "target", "expected_answer", "correct_answer", "label"),
+        ),
+        stage,
+    )
+    return pmid, stage, candidate_tag, ground_truth
+
+
+def _source_pro_first(record):
+    value = first_value(record, ("pro_first", "pro_is_a", "pro_goes_first"))
+    parsed = parse_bool(value)
+    if parsed is not None:
+        return parsed
+
+    a_side = stringify(first_value(record, ("a_side", "debater_a_side"))).upper()
+    if a_side == "PRO":
+        return True
+    if a_side == "CON":
+        return False
+    return None
+
+
+def argument_is_valid(argument):
+    text = stringify(argument)
+    return bool(text and text.lower() not in ("unknown", "none", "null"))
+
+
+def _test_subset(cases, number_of_pmids=5):
+    selected_pmids = []
+    selected_set = set()
+    for case in cases:
+        pmid = case["pmid"]
+        if pmid not in selected_set:
+            if len(selected_pmids) >= number_of_pmids:
+                continue
+            selected_pmids.append(pmid)
+            selected_set.add(pmid)
+    return [case for case in cases if case["pmid"] in selected_set]
+
+
+def load_source_debate_cases(
+    kind,
+    title_index,
+    chunk_id,
+    explicit_path=None,
+    test_mode=False,
+):
+    """
+    Load saved 2B debate text. This function never loads or invokes a debater model.
+    Invalid/incomplete source records are reported and skipped; a later rerun can add
+    them after the original debate-producing job has completed them.
+    """
+    source_path = locate_source_file(kind, chunk_id, explicit_path)
+    with open(source_path, "r", encoding="utf-8") as handle:
+        payload = json.load(handle)
+    records = extract_results(payload)
+    if records is None:
+        raise RuntimeError("Source file has no results/records/data/items list: %s" % source_path)
+
+    cases = []
+    seen = {}
+    skipped = []
+
+    for source_index, record in enumerate(records):
+        if not isinstance(record, dict):
+            skipped.append((source_index, "record is not a JSON object"))
+            continue
+
+        pmid, stage, candidate_tag, ground_truth = _source_identity(record)
+        missing = []
+        if not pmid:
+            missing.append("pmid")
+        if not stage:
+            missing.append("stage")
+        if not candidate_tag:
+            missing.append("candidate_tag")
+        if ground_truth not in ("Yes", "No"):
+            missing.append("ground_truth")
+        if missing:
+            skipped.append((source_index, "missing/invalid " + ", ".join(missing)))
+            continue
+        if pmid not in title_index:
+            skipped.append((source_index, "PMID %s not found in dataset" % pmid))
+            continue
+
+        pro_first = _source_pro_first(record)
+        if pro_first is None:
+            skipped.append((source_index, "missing/invalid pro_first"))
+            continue
+
+        case = {
+            "pmid": pmid,
+            "stage": stage,
+            "candidate_tag": candidate_tag,
+            "ground_truth": ground_truth,
+            "title": title_index[pmid],
+            "pro_first": pro_first,
+            "source_record_index": source_index,
+        }
+
+        if kind == "statement":
+            pro_argument = stringify(
+                first_value(
+                    record,
+                    ("pro_argument", "pro_statement", "argument_pro", "pro_output"),
+                )
+            )
+            con_argument = stringify(
+                first_value(
+                    record,
+                    ("con_argument", "con_statement", "argument_con", "con_output"),
+                )
+            )
+            if not argument_is_valid(pro_argument) or not argument_is_valid(con_argument):
+                skipped.append((source_index, "missing/invalid saved PRO or CON argument"))
+                continue
+            case["pro_argument"] = pro_argument
+            case["con_argument"] = con_argument
+        elif kind == "interactive":
+            a_turn1 = stringify(
+                first_value(record, ("a_turn1", "a_opening", "debater_a_turn1"))
+            )
+            b_turn1 = stringify(
+                first_value(record, ("b_turn1", "b_response", "debater_b_turn1"))
+            )
+            a_turn2 = stringify(
+                first_value(record, ("a_turn2", "a_rebuttal", "debater_a_turn2"))
+            )
+            if not all(argument_is_valid(value) for value in (a_turn1, b_turn1, a_turn2)):
+                skipped.append((source_index, "missing/invalid saved ABA turn"))
+                continue
+            case["a_turn1"] = a_turn1
+            case["b_turn1"] = b_turn1
+            case["a_turn2"] = a_turn2
+        else:
+            raise ValueError("Unknown source debate kind: %s" % kind)
+
+        key = case_key(case)
+        previous = seen.get(key)
+        if previous is not None:
+            if (
+                previous["candidate_tag"] != candidate_tag
+                or previous["ground_truth"] != ground_truth
+            ):
+                raise RuntimeError(
+                    "Conflicting duplicate source records for stage=%r PMID=%r"
+                    % (stage, pmid)
+                )
+            skipped.append((source_index, "duplicate of an earlier source record"))
+            continue
+
+        seen[key] = case
+        cases.append(case)
+
+    if test_mode:
+        cases = _test_subset(cases, number_of_pmids=5)
+
+    print("[SOURCE] Reusing saved %s debates: %s" % (kind, source_path), flush=True)
+    print(
+        "[SOURCE] %d raw records | %d usable records | %d skipped"
+        % (len(records), len(cases), len(skipped)),
+        flush=True,
+    )
+    for source_index, reason in skipped[:10]:
+        print("[SOURCE WARNING] record %d: %s" % (source_index, reason), flush=True)
+    if len(skipped) > 10:
+        print("[SOURCE WARNING] ... and %d more" % (len(skipped) - 10), flush=True)
+    if not cases:
+        raise RuntimeError("No usable saved debates found in %s" % source_path)
+
+    return cases, source_path, len(records), len(skipped)
 
 
 def case_key(case):
@@ -211,14 +520,8 @@ def load_checkpoint(path):
     except Exception as exc:
         raise RuntimeError("Cannot safely read checkpoint %s: %s" % (path, exc)) from exc
 
-    if isinstance(payload, dict):
-        records = payload.get("results", [])
-    elif isinstance(payload, list):
-        records = payload
-    else:
-        raise RuntimeError("Checkpoint %s has an unsupported JSON structure" % path)
-
-    if not isinstance(records, list):
+    records = extract_results(payload)
+    if records is None:
         raise RuntimeError("Checkpoint %s does not contain a results list" % path)
 
     for record in records:
@@ -293,7 +596,7 @@ def base_metadata(
     judge_model,
     debater_model=None,
 ):
-    metadata = {
+    return {
         "experiment_id": experiment_id,
         "design": "asymmetric_title_only_judge",
         "condition": condition,
@@ -302,15 +605,12 @@ def base_metadata(
         "judge_receives_abstract": False,
         "judge_receives_assigned_tags": False,
         "judge_receives_manual": False,
-        "debater_receives_title": debater_model is not None,
-        "debater_receives_abstract": debater_model is not None,
-        "debater_receives_assigned_tags": debater_model is not None,
-        "debater_receives_manual": False,
+        "debater_outputs_reused": debater_model is not None,
+        "new_debater_generation": False,
         "chunk_id": args.chunk_id,
         "total_chunks": args.total_chunks,
         "test_mode": bool(args.test_mode),
     }
-    return metadata
 
 
 def ensure_cuda():
@@ -380,12 +680,9 @@ def generate_structured(
 
         if parsed is not None:
             value = stringify(getattr(parsed, text_field, ""))
-            if text_field == "answer":
-                normalized = value.capitalize()
-                if normalized in ("Yes", "No"):
-                    return normalized, last_response
-            elif value:
-                return value, last_response
+            normalized = value.capitalize()
+            if normalized in ("Yes", "No"):
+                return normalized, last_response
 
     fallback = re.findall(
         r'"%s"\s*:\s*"(.*?)"' % re.escape(text_field),
@@ -393,19 +690,11 @@ def generate_structured(
         flags=re.IGNORECASE | re.DOTALL,
     )
     if fallback:
-        value = fallback[-1].strip()
-        if text_field == "answer":
-            normalized = value.capitalize()
-            if normalized in ("Yes", "No"):
-                return normalized, last_response
-        elif value:
-            return value, last_response
+        normalized = fallback[-1].strip().capitalize()
+        if normalized in ("Yes", "No"):
+            return normalized, last_response
 
     return "Unknown", last_response
-
-
-def argument_is_valid(argument):
-    return bool(argument and argument.strip() and argument.strip() != "Unknown")
 
 
 def all_cases_complete(cases, completed_keys):

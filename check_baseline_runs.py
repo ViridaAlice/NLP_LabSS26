@@ -22,12 +22,25 @@ ASYMMETRIC_RUNS = [
         "asymmetric_titleonly_baseline",
     ),
     (
-        "Asymmetric statement: 2B debaters -> title-only 0.8B judge",
+        "Asymmetric statement: saved 2B debates -> title-only 0.8B judge",
         "asymmetric_titleonly_statement",
     ),
     (
-        "Asymmetric interactive ABA: 2B debaters -> title-only 0.8B judge",
+        "Asymmetric interactive ABA: saved 2B debates -> title-only 0.8B judge",
         "asymmetric_titleonly_interactive_aba",
+    ),
+]
+
+SOURCE_RUNS = [
+    (
+        "Saved statement debates required by asymmetric statement",
+        "statement",
+        re.compile(r"^pydantic_statement_results_chunk\d+\.json$", re.IGNORECASE),
+    ),
+    (
+        "Saved interactive debates required by asymmetric ABA",
+        "interactive",
+        re.compile(r"^pydantic_interactive_results_chunk\d+\.json$", re.IGNORECASE),
     ),
 ]
 
@@ -36,14 +49,33 @@ def normalize(value):
     return str(value or "").strip().lower().replace("\\", "/")
 
 
+def text_value(value):
+    if value is None:
+        return ""
+    if isinstance(value, str):
+        return value.strip()
+    return str(value).strip()
+
+
 def truth_value(value):
     if isinstance(value, bool):
         return value
+    if isinstance(value, int) and value in (0, 1):
+        return bool(value)
     text = normalize(value)
-    if text in ("true", "1", "yes"):
+    if text in ("true", "1", "yes", "pro", "pro_first"):
         return True
-    if text in ("false", "0", "no"):
+    if text in ("false", "0", "no", "con", "con_first"):
         return False
+    return None
+
+
+def first_value(record, names):
+    if not isinstance(record, dict):
+        return None
+    for name in names:
+        if name in record and record[name] is not None:
+            return record[name]
     return None
 
 
@@ -158,7 +190,10 @@ def detect_manual(text, records):
 def detect_asymmetric_experiment(path, payload):
     metadata = metadata_dict(payload)
     explicit = normalize(
-        metadata.get("experiment_id", payload.get("experiment_id", "") if isinstance(payload, dict) else "")
+        metadata.get(
+            "experiment_id",
+            payload.get("experiment_id", "") if isinstance(payload, dict) else "",
+        )
     )
     known = {experiment_id for _, experiment_id in ASYMMETRIC_RUNS}
     if explicit in known:
@@ -236,6 +271,113 @@ def summarize_files(files, expected=EXPECTED):
     }
 
 
+def source_identity(record):
+    if not isinstance(record, dict):
+        return None
+    stage = normalize(
+        first_value(record, ("stage", "round", "round_name", "evaluation_stage"))
+    )
+    pmid = normalize(first_value(record, ("pmid", "PMID", "article_id")))
+    candidate = normalize(
+        first_value(record, ("candidate_tag", "candidate_mesh_tag", "mesh_tag", "tag"))
+    )
+    ground = normalize(
+        first_value(
+            record,
+            ("ground_truth", "target", "expected_answer", "correct_answer", "label"),
+        )
+    )
+    if not ground:
+        if "true tag" in stage or "round 1" in stage:
+            ground = "yes"
+        elif (
+            "unrelated" in stage
+            or "similar tag" in stage
+            or "round 2" in stage
+            or "round 3" in stage
+        ):
+            ground = "no"
+    if ground in ("true", "1", "positive", "belongs"):
+        ground = "yes"
+    if ground in ("false", "0", "negative", "does not belong"):
+        ground = "no"
+    if not stage or not pmid or not candidate or ground not in ("yes", "no"):
+        return None
+    return (stage, pmid, candidate, ground)
+
+
+def source_pro_first(record):
+    value = first_value(record, ("pro_first", "pro_is_a", "pro_goes_first"))
+    parsed = truth_value(value)
+    if parsed is not None:
+        return parsed
+    a_side = normalize(first_value(record, ("a_side", "debater_a_side")))
+    if a_side == "pro":
+        return True
+    if a_side == "con":
+        return False
+    return None
+
+
+def valid_saved_text(value):
+    text = text_value(value).lower()
+    return bool(text and text not in ("unknown", "none", "null"))
+
+
+def source_record_is_usable(record, kind):
+    if source_identity(record) is None or source_pro_first(record) is None:
+        return False
+
+    if kind == "statement":
+        pro_argument = first_value(
+            record,
+            ("pro_argument", "pro_statement", "argument_pro", "pro_output"),
+        )
+        con_argument = first_value(
+            record,
+            ("con_argument", "con_statement", "argument_con", "con_output"),
+        )
+        return valid_saved_text(pro_argument) and valid_saved_text(con_argument)
+
+    if kind == "interactive":
+        a_turn1 = first_value(record, ("a_turn1", "a_opening", "debater_a_turn1"))
+        b_turn1 = first_value(record, ("b_turn1", "b_response", "debater_b_turn1"))
+        a_turn2 = first_value(record, ("a_turn2", "a_rebuttal", "debater_a_turn2"))
+        return all(valid_saved_text(value) for value in (a_turn1, b_turn1, a_turn2))
+
+    return False
+
+
+def summarize_source_files(files, kind, expected=EXPECTED):
+    keys = set()
+    raw_count = 0
+    invalid_count = 0
+    duplicate_count = 0
+
+    for _, records in files:
+        for record in records:
+            raw_count += 1
+            if not source_record_is_usable(record, kind):
+                invalid_count += 1
+                continue
+            key = source_identity(record)
+            if key in keys:
+                duplicate_count += 1
+            else:
+                keys.add(key)
+
+    unique_count = len(keys)
+    return {
+        "complete": unique_count == expected,
+        "unique": unique_count,
+        "raw": raw_count,
+        "invalid": invalid_count,
+        "duplicates": duplicate_count,
+        "missing": max(0, expected - unique_count),
+        "extra": max(0, unique_count - expected),
+    }
+
+
 def print_run(label, files, summary):
     if summary["complete"]:
         status = "COMPLETE"
@@ -260,6 +402,28 @@ def print_run(label, files, summary):
             print("    - %s (%d records)" % (path, len(records)))
 
 
+def print_source_run(label, files, summary):
+    if summary["complete"]:
+        status = "AVAILABLE AND COMPLETE"
+    elif summary["unique"] < EXPECTED:
+        status = "SOURCE INCOMPLETE (%d usable debates missing)" % summary["missing"]
+    else:
+        status = "CHECK SOURCE (%d unexpected extra debates)" % summary["extra"]
+
+    print("")
+    print(label)
+    print("  Status:            %s" % status)
+    print("  Unique usable:     %d / %d" % (summary["unique"], EXPECTED))
+    print("  Matching files:    %d" % len(files))
+    print("  Raw source records:%d" % summary["raw"])
+    print("  Invalid debates:   %d" % summary["invalid"])
+    print("  Duplicate debates: %d" % summary["duplicates"])
+    for path, records in files:
+        print("    - %s (%d records)" % (path, len(records)))
+    if not files:
+        print("  Warning: no matching saved debate files found")
+
+
 def discover_results():
     patterns = [
         os.path.join(RESULTS_DIR, "*.json"),
@@ -276,15 +440,27 @@ def discover_results():
 def main():
     larger_grouped = {}
     asymmetric_grouped = {}
+    source_grouped = {kind: [] for _, kind, _ in SOURCE_RUNS}
     unreadable = []
 
+    source_patterns = [(kind, pattern) for _, kind, pattern in SOURCE_RUNS]
+
     for path in discover_results():
-        filename = normalize(os.path.basename(path))
+        filename_raw = os.path.basename(path)
+        filename = normalize(filename_raw)
         if filename.startswith("test_"):
             continue
 
+        source_kind = None
+        for kind, pattern in source_patterns:
+            if pattern.match(filename_raw):
+                source_kind = kind
+                break
+
         potentially_relevant = (
-            "baseline" in filename or "asymmetric_titleonly" in filename
+            source_kind is not None
+            or "baseline" in filename
+            or "asymmetric_titleonly" in filename
         )
         if not potentially_relevant:
             continue
@@ -296,6 +472,10 @@ def main():
 
         records = extract_results(payload)
         if records is None:
+            continue
+
+        if source_kind is not None:
+            source_grouped[source_kind].append((path, records))
             continue
 
         asymmetric_id = detect_asymmetric_experiment(path, payload)
@@ -329,8 +509,21 @@ def main():
 
     print("")
     print("=" * 78)
+    print("SAVED 2B DEBATE SOURCE CHECK")
+    print("Statement and interactive asymmetric jobs reuse these texts verbatim.")
+    print("=" * 78)
+
+    source_summaries = {}
+    for label, kind, _ in SOURCE_RUNS:
+        files = source_grouped.get(kind, [])
+        summary = summarize_source_files(files, kind)
+        source_summaries[kind] = summary
+        print_source_run(label, files, summary)
+
+    print("")
+    print("=" * 78)
     print("ASYMMETRIC TITLE-ONLY JUDGE COMPLETION CHECK")
-    print("Pipeline order per chunk: baseline -> statement -> interactive ABA.")
+    print("The statement and ABA phases load only the 0.8B judge, not the 2B debater.")
     print("=" * 78)
 
     asymmetric_complete = True
@@ -348,18 +541,42 @@ def main():
     if asymmetric_complete:
         print("ASYMMETRIC PIPELINE COMPLETE: do not restart submit_asymmetric.sh.")
     else:
-        next_label = next(
-            label
-            for label, experiment_id in ASYMMETRIC_RUNS
-            if not asymmetric_summaries[experiment_id]["complete"]
-        )
-        print("ASYMMETRIC PIPELINE NEEDS ANOTHER RESUME ROUND.")
-        print("Earliest incomplete phase: %s" % next_label)
-        print("First ensure no asym_title array is running or pending:")
-        print("  squeue -u \"$USER\" -n asym_title")
-        print("If that command shows no jobs, restart safely with:")
-        print("  sbatch submit_asymmetric.sh")
-        print("Do not run overlapping copies; they would write the same checkpoints.")
+        statement_needed = not asymmetric_summaries[
+            "asymmetric_titleonly_statement"
+        ]["complete"]
+        interactive_needed = not asymmetric_summaries[
+            "asymmetric_titleonly_interactive_aba"
+        ]["complete"]
+        missing_sources = []
+        if statement_needed and not source_summaries["statement"]["complete"]:
+            missing_sources.append("statement")
+        if interactive_needed and not source_summaries["interactive"]["complete"]:
+            missing_sources.append("interactive")
+
+        if missing_sources:
+            print("ASYMMETRIC PIPELINE IS BLOCKED BY INCOMPLETE SAVED DEBATES.")
+            print(
+                "First resume the ORIGINAL %s debate-producing job(s)."
+                % " and ".join(missing_sources)
+            )
+            print("Do not regenerate debates inside the asymmetric scripts.")
+            print(
+                "After the source files reach 3,000 usable debates, rerun this checker "
+                "and then resume submit_asymmetric.sh."
+            )
+        else:
+            next_label = next(
+                label
+                for label, experiment_id in ASYMMETRIC_RUNS
+                if not asymmetric_summaries[experiment_id]["complete"]
+            )
+            print("ASYMMETRIC PIPELINE NEEDS ANOTHER JUDGE-ONLY RESUME ROUND.")
+            print("Earliest incomplete phase: %s" % next_label)
+            print("First ensure no asym_title array is running or pending:")
+            print("  squeue -u \"$USER\" -n asym_title")
+            print("If that command shows no jobs, restart safely with:")
+            print("  sbatch submit_asymmetric.sh")
+            print("Do not run overlapping copies; they write the same checkpoints.")
 
     if unreadable:
         print("")
