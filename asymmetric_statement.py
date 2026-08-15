@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 
+import os
+
 from pydantic import BaseModel, Field
 
 from asymmetric_common import (
+    SOURCE_LAYOUT_VERSION,
     all_cases_complete,
     base_metadata,
     build_title_index,
@@ -21,7 +24,8 @@ from asymmetric_common import (
 )
 
 JUDGE_MODEL_ID = "./Qwen3.5-0.8B"
-REUSED_DEBATER_MODEL_ID = "./Qwen3.5-2B"
+SOURCE_DEBATER_MODEL_ID = "./Qwen3.5-2B"
+SOURCE_BASENAME = "pydantic_statement_results_full.json"
 EXPERIMENT_ID = "asymmetric_titleonly_statement"
 
 
@@ -73,14 +77,12 @@ def build_judge_messages(title, candidate_tag, pro_first, pro_argument, con_argu
 
 def main():
     args = parse_args(
-        "Judge-only asymmetric statement re-evaluation using saved 2B debates",
+        "Judge-only asymmetric statement re-evaluation using the full saved 2B file",
         allow_source=True,
     )
 
-    # The full dataset is used only to map each saved PMID to its paper title.
-    # Abstracts and assigned tags are never inserted into the judge prompt.
     title_index = build_title_index(load_dataset())
-    cases, source_path, source_raw_count, source_skipped = load_source_debate_cases(
+    cases, source_path, source_stats = load_source_debate_cases(
         "statement",
         title_index,
         args.chunk_id,
@@ -88,17 +90,28 @@ def main():
         explicit_path=args.source_file,
         test_mode=args.test_mode,
     )
+    source_sha256 = file_sha256(source_path)
 
     path = output_path(EXPERIMENT_ID, args.chunk_id, args.test_mode)
-    records_by_key, completed = load_checkpoint(path)
+    compatibility = {
+        "experiment_id": EXPERIMENT_ID,
+        "source_layout_version": SOURCE_LAYOUT_VERSION,
+        "debate_source_sha256": source_sha256,
+        "source_chunk_start": source_stats["source_chunk_start"],
+        "source_chunk_end": source_stats["source_chunk_end"],
+    }
+    records_by_key, completed = load_checkpoint(
+        path, required_metadata=compatibility
+    )
 
     metadata = base_metadata(
         EXPERIMENT_ID,
         "statement",
         args,
         judge_model=JUDGE_MODEL_ID,
-        debater_model=REUSED_DEBATER_MODEL_ID,
+        debater_model=SOURCE_DEBATER_MODEL_ID,
     )
+    metadata.update(source_stats)
     metadata.update(
         {
             "judge_information": [
@@ -109,19 +122,21 @@ def main():
                 "saved_pro_first",
             ],
             "debate_source_file": source_path,
-            "debate_source_sha256": file_sha256(source_path),
-            "source_raw_records": source_raw_count,
-            "source_skipped_records": source_skipped,
+            "debate_source_basename": os.path.basename(source_path),
+            "debate_source_sha256": source_sha256,
             "debater_outputs_reused": True,
             "new_debater_generation": False,
             "loaded_models": [JUDGE_MODEL_ID],
         }
     )
 
+    if os.path.basename(source_path) != SOURCE_BASENAME and args.source_file is None:
+        raise RuntimeError("Unexpected default statement source: %s" % source_path)
+
     if all_cases_complete(cases, completed):
         print(
-            "[COMPLETE] Statement chunk already contains judgments for every available "
-            "saved debate; no model load needed."
+            "[COMPLETE] Statement chunk already contains judgments for every saved "
+            "debate in its full-file slice; no model load needed."
         )
         save_checkpoint(path, metadata, records_by_key, len(cases))
         return
@@ -180,7 +195,7 @@ def main():
         print_case_result(index, len(cases), case, prediction, generation_complete)
 
     print(
-        "[COMPLETE] Statement chunk %d judged using saved debates only."
+        "[COMPLETE] Statement chunk %d judged using the saved full source only."
         % args.chunk_id,
         flush=True,
     )

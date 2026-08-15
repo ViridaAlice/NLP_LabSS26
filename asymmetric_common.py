@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import argparse
-import glob
 import hashlib
 import json
 import os
@@ -17,6 +16,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 HF_TOKEN = os.environ.get("HF_TOKEN")
 DATASET_PATH = "pubmed_xmlc_dataset.json"
 RESULTS_DIR = "results"
+SOURCE_LAYOUT_VERSION = "full_source_contiguous_raw_chunks_v1"
 
 STAGES = [
     ("Round 1: True Tag", "Yes"),
@@ -24,11 +24,12 @@ STAGES = [
     ("Round 3: Similar Tag", "No"),
 ]
 
-# These are the two existing full-result files whose saved 2B debater text is
-# reused by the asymmetric statement and interactive judge-only runs.
-SOURCE_BASENAMES = {
-    "statement": "pydantic_statement_results_full.json",
-    "interactive": "interactive_results_full_rejudge2B.json",
+# These are the only default debate sources used by the asymmetric rejudging jobs.
+SOURCE_PATHS = {
+    "statement": os.path.join(RESULTS_DIR, "pydantic_statement_results_full.json"),
+    "interactive": os.path.join(
+        RESULTS_DIR, "interactive_results_full_rejudge2B.json"
+    ),
 }
 
 
@@ -43,8 +44,9 @@ def parse_args(description, allow_source=False):
             "--source_file",
             default=None,
             help=(
-                "Exact earlier full-result debate JSON to reuse. If omitted, the "
-                "script finds the expected full-result file in results/."
+                "Exact full earlier debate JSON to reuse. By default, statement uses "
+                "results/pydantic_statement_results_full.json and interactive uses "
+                "results/interactive_results_full_rejudge2B.json."
             ),
         )
     return parser.parse_args()
@@ -105,7 +107,7 @@ def build_title_index(dataset):
     return titles
 
 
-def validate_chunk(chunk_id, total_chunks):
+def validate_chunk_args(chunk_id, total_chunks):
     if total_chunks < 1:
         raise ValueError("--total_chunks must be at least 1")
     if chunk_id < 0 or chunk_id >= total_chunks:
@@ -113,7 +115,7 @@ def validate_chunk(chunk_id, total_chunks):
 
 
 def chunk_bounds(length, chunk_id, total_chunks):
-    validate_chunk(chunk_id, total_chunks)
+    validate_chunk_args(chunk_id, total_chunks)
     chunk_size = (length + total_chunks - 1) // total_chunks
     start_idx = chunk_id * chunk_size
     end_idx = min(start_idx + chunk_size, length)
@@ -265,33 +267,16 @@ def locate_source_file(kind, explicit_path=None):
             raise FileNotFoundError("Source debate file does not exist: %s" % path)
         return path
 
-    if kind not in SOURCE_BASENAMES:
+    if kind not in SOURCE_PATHS:
         raise ValueError("Unknown source debate kind: %s" % kind)
 
-    basename = SOURCE_BASENAMES[kind]
-    candidates = set()
-    for path in (basename, os.path.join(RESULTS_DIR, basename)):
-        if os.path.isfile(path):
-            candidates.add(os.path.abspath(path))
-
-    recursive_pattern = os.path.join(RESULTS_DIR, "**", basename)
-    for path in glob.glob(recursive_pattern, recursive=True):
-        if os.path.isfile(path):
-            candidates.add(os.path.abspath(path))
-
-    candidates = sorted(candidates)
-    if not candidates:
+    path = os.path.abspath(SOURCE_PATHS[kind])
+    if not os.path.isfile(path):
         raise FileNotFoundError(
-            "Could not find the earlier %s debate file %s. Expected it in %s/ "
-            "or pass --source_file PATH."
-            % (kind, basename, RESULTS_DIR)
+            "Required full %s debate source is missing: %s"
+            % (kind, SOURCE_PATHS[kind])
         )
-    if len(candidates) > 1:
-        raise RuntimeError(
-            "Multiple source files match %s; use --source_file to choose exactly one:\n  %s"
-            % (basename, "\n  ".join(candidates))
-        )
-    return candidates[0]
+    return path
 
 
 def file_sha256(path):
@@ -324,7 +309,10 @@ def _source_identity(record):
 
 
 def _source_pro_first(record):
-    value = first_value(record, ("pro_first", "pro_is_a", "pro_goes_first"))
+    value = first_value(
+        record,
+        ("pro_first", "a_is_pro", "pro_is_a", "pro_goes_first"),
+    )
     parsed = parse_bool(value)
     if parsed is not None:
         return parsed
@@ -337,9 +325,57 @@ def _source_pro_first(record):
     return None
 
 
-def argument_is_valid(argument):
-    text = stringify(argument)
-    return bool(text and text.lower() not in ("unknown", "none", "null"))
+def saved_text_is_present(value):
+    # "Unknown" is retained because it is an exact saved debater output. The
+    # asymmetric experiment must not regenerate or silently replace it.
+    return bool(stringify(value))
+
+
+def _interactive_debate_mapping(record):
+    value = first_value(record, ("debate_ABA", "debate_aba", "aba_debate"))
+    return value if isinstance(value, dict) else {}
+
+
+def _saved_statement_text(record):
+    pro_argument = stringify(
+        first_value(
+            record,
+            ("pro_argument", "pro_statement", "argument_pro", "pro_output"),
+        )
+    )
+    con_argument = stringify(
+        first_value(
+            record,
+            ("con_argument", "con_statement", "argument_con", "con_output"),
+        )
+    )
+    return pro_argument, con_argument
+
+
+def _saved_interactive_text(record):
+    debate = _interactive_debate_mapping(record)
+
+    a_turn1 = first_value(record, ("a_turn1", "a_opening", "debater_a_turn1"))
+    if a_turn1 is None:
+        a_turn1 = first_value(
+            debate, ("a_turn1", "a_opening", "debater_a_turn1")
+        )
+
+    b_turn1 = first_value(record, ("b_turn1", "b_response", "b_rebuttal", "debater_b_turn1"))
+    if b_turn1 is None:
+        b_turn1 = first_value(
+            debate,
+            ("b_turn1", "b_response", "b_rebuttal", "debater_b_turn1"),
+        )
+
+    a_turn2 = first_value(record, ("a_turn2", "a_rebuttal", "a_closing", "debater_a_turn2"))
+    if a_turn2 is None:
+        a_turn2 = first_value(
+            debate,
+            ("a_turn2", "a_rebuttal", "a_closing", "debater_a_turn2"),
+        )
+
+    return stringify(a_turn1), stringify(b_turn1), stringify(a_turn2)
 
 
 def _test_subset(cases, number_of_pmids=5):
@@ -364,10 +400,12 @@ def load_source_debate_cases(
     test_mode=False,
 ):
     """
-    Load saved 2B debate text from one full-result JSON and select this task's
-    disjoint chunk. This function never loads or invokes a debater model.
+    Load one contiguous slice of a full saved 2B debate file.
+
+    The source is split by raw record index. With 3,000 records and four chunks,
+    the fixed slices are 0:750, 750:1500, 1500:2250, and 2250:3000. This function
+    never loads or invokes a debater model.
     """
-    validate_chunk(chunk_id, total_chunks)
     source_path = locate_source_file(kind, explicit_path)
     with open(source_path, "r", encoding="utf-8") as handle:
         payload = json.load(handle)
@@ -377,11 +415,13 @@ def load_source_debate_cases(
             "Source file has no results/records/data/items list: %s" % source_path
         )
 
-    all_cases = []
+    start_idx, end_idx = chunk_bounds(len(records), chunk_id, total_chunks)
+    selected_records = records[start_idx:end_idx]
+    cases = []
     seen = {}
     skipped = []
 
-    for source_index, record in enumerate(records):
+    for source_index, record in enumerate(selected_records, start=start_idx):
         if not isinstance(record, dict):
             skipped.append((source_index, "record is not a JSON object"))
             continue
@@ -405,7 +445,7 @@ def load_source_debate_cases(
 
         pro_first = _source_pro_first(record)
         if pro_first is None:
-            skipped.append((source_index, "missing/invalid pro_first"))
+            skipped.append((source_index, "missing/invalid pro_first or a_is_pro"))
             continue
 
         case = {
@@ -419,39 +459,23 @@ def load_source_debate_cases(
         }
 
         if kind == "statement":
-            pro_argument = stringify(
-                first_value(
-                    record,
-                    ("pro_argument", "pro_statement", "argument_pro", "pro_output"),
-                )
-            )
-            con_argument = stringify(
-                first_value(
-                    record,
-                    ("con_argument", "con_statement", "argument_con", "con_output"),
-                )
-            )
-            if not argument_is_valid(pro_argument) or not argument_is_valid(con_argument):
+            pro_argument, con_argument = _saved_statement_text(record)
+            if not saved_text_is_present(pro_argument) or not saved_text_is_present(
+                con_argument
+            ):
                 skipped.append(
-                    (source_index, "missing/invalid saved PRO or CON argument")
+                    (source_index, "missing saved PRO or CON argument")
                 )
                 continue
             case["pro_argument"] = pro_argument
             case["con_argument"] = con_argument
         elif kind == "interactive":
-            a_turn1 = stringify(
-                first_value(record, ("a_turn1", "a_opening", "debater_a_turn1"))
-            )
-            b_turn1 = stringify(
-                first_value(record, ("b_turn1", "b_response", "debater_b_turn1"))
-            )
-            a_turn2 = stringify(
-                first_value(record, ("a_turn2", "a_rebuttal", "debater_a_turn2"))
-            )
+            a_turn1, b_turn1, a_turn2 = _saved_interactive_text(record)
             if not all(
-                argument_is_valid(value) for value in (a_turn1, b_turn1, a_turn2)
+                saved_text_is_present(value)
+                for value in (a_turn1, b_turn1, a_turn2)
             ):
-                skipped.append((source_index, "missing/invalid saved ABA turn"))
+                skipped.append((source_index, "missing saved ABA turn"))
                 continue
             case["a_turn1"] = a_turn1
             case["b_turn1"] = b_turn1
@@ -460,41 +484,39 @@ def load_source_debate_cases(
             raise ValueError("Unknown source debate kind: %s" % kind)
 
         key = case_key(case)
-        previous = seen.get(key)
-        if previous is not None:
-            if (
-                previous["candidate_tag"] != candidate_tag
-                or previous["ground_truth"] != ground_truth
-            ):
-                raise RuntimeError(
-                    "Conflicting duplicate source records for stage=%r PMID=%r"
-                    % (stage, pmid)
-                )
-            skipped.append((source_index, "duplicate of an earlier source record"))
+        if key in seen:
+            skipped.append((source_index, "duplicate of an earlier record in this chunk"))
             continue
 
         seen[key] = case
-        all_cases.append(case)
+        cases.append(case)
 
-    if not all_cases:
-        raise RuntimeError("No usable saved debates found in %s" % source_path)
-
-    # Both source files are full 3,000-record outputs. Partition the reusable
-    # cases here so the four Slurm tasks do not each judge all 3,000 records.
-    start_idx, end_idx = chunk_bounds(len(all_cases), chunk_id, total_chunks)
-    cases = all_cases[start_idx:end_idx]
+    usable_before_test = len(cases)
     if test_mode:
         cases = _test_subset(cases, number_of_pmids=5)
 
+    source_stats = {
+        "source_layout_version": SOURCE_LAYOUT_VERSION,
+        "source_total_raw_records": len(records),
+        "source_chunk_start": start_idx,
+        "source_chunk_end": end_idx,
+        "source_chunk_raw_records": len(selected_records),
+        "source_chunk_usable_before_test": usable_before_test,
+        "source_chunk_selected_for_run": len(cases),
+        "source_chunk_skipped_records": len(skipped),
+    }
+
     print("[SOURCE] Reusing saved %s debates: %s" % (kind, source_path), flush=True)
     print(
-        "[SOURCE] %d raw records | %d usable total | %d skipped"
-        % (len(records), len(all_cases), len(skipped)),
-        flush=True,
-    )
-    print(
-        "[SOURCE CHUNK] %d/%d | usable rows %d:%d | selected debates: %d"
-        % (chunk_id + 1, total_chunks, start_idx, end_idx, len(cases)),
+        "[SOURCE] full=%d | raw slice=%d:%d (%d) | usable=%d | skipped=%d"
+        % (
+            len(records),
+            start_idx,
+            end_idx,
+            len(selected_records),
+            len(cases),
+            len(skipped),
+        ),
         flush=True,
     )
     for source_index, reason in skipped[:10]:
@@ -503,11 +525,11 @@ def load_source_debate_cases(
         print("[SOURCE WARNING] ... and %d more" % (len(skipped) - 10), flush=True)
     if not cases:
         raise RuntimeError(
-            "No usable saved debates selected for chunk %d/%d from %s"
-            % (chunk_id, total_chunks, source_path)
+            "No usable saved debates in source slice %d:%d of %s"
+            % (start_idx, end_idx, source_path)
         )
 
-    return cases, source_path, len(records), len(skipped)
+    return cases, source_path, source_stats
 
 
 def case_key(case):
@@ -539,7 +561,21 @@ def record_is_complete(record):
     return normalized_prediction(record) in ("yes", "no")
 
 
-def load_checkpoint(path):
+def _archive_incompatible_checkpoint(path, reasons):
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    archive_path = "%s.incompatible-%s.bak" % (path, stamp)
+    suffix = 1
+    while os.path.exists(archive_path):
+        archive_path = "%s.incompatible-%s-%d.bak" % (path, stamp, suffix)
+        suffix += 1
+    os.replace(path, archive_path)
+    print("[CHECKPOINT RESET] Existing asymmetric checkpoint is incompatible:", flush=True)
+    for reason in reasons:
+        print("  - %s" % reason, flush=True)
+    print("[CHECKPOINT RESET] Archived as: %s" % archive_path, flush=True)
+
+
+def load_checkpoint(path, required_metadata=None):
     records_by_key = {}
 
     if not os.path.exists(path):
@@ -550,6 +586,19 @@ def load_checkpoint(path):
             payload = json.load(handle)
     except Exception as exc:
         raise RuntimeError("Cannot safely read checkpoint %s: %s" % (path, exc)) from exc
+
+    if required_metadata:
+        metadata = payload.get("metadata", {}) if isinstance(payload, dict) else {}
+        reasons = []
+        for key, expected_value in required_metadata.items():
+            actual_value = metadata.get(key)
+            if actual_value != expected_value:
+                reasons.append(
+                    "%s is %r, expected %r" % (key, actual_value, expected_value)
+                )
+        if reasons:
+            _archive_incompatible_checkpoint(path, reasons)
+            return records_by_key, set()
 
     records = extract_results(payload)
     if records is None:

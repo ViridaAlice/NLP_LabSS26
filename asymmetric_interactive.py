@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 
+import os
+
 from pydantic import BaseModel, Field
 
 from asymmetric_common import (
+    SOURCE_LAYOUT_VERSION,
     all_cases_complete,
     base_metadata,
     build_title_index,
@@ -21,7 +24,8 @@ from asymmetric_common import (
 )
 
 JUDGE_MODEL_ID = "./Qwen3.5-0.8B"
-REUSED_DEBATER_MODEL_ID = "./Qwen3.5-2B"
+SOURCE_DEBATER_MODEL_ID = "./Qwen3.5-2B"
+SOURCE_BASENAME = "interactive_results_full_rejudge2B.json"
 EXPERIMENT_ID = "asymmetric_titleonly_interactive_aba"
 
 
@@ -79,13 +83,12 @@ def build_judge_messages(
 
 def main():
     args = parse_args(
-        "Judge-only asymmetric ABA re-evaluation using saved 2B debates",
+        "Judge-only asymmetric ABA re-evaluation using the full saved 2B file",
         allow_source=True,
     )
 
-    # The dataset contributes only the title associated with each saved PMID.
     title_index = build_title_index(load_dataset())
-    cases, source_path, source_raw_count, source_skipped = load_source_debate_cases(
+    cases, source_path, source_stats = load_source_debate_cases(
         "interactive",
         title_index,
         args.chunk_id,
@@ -93,17 +96,28 @@ def main():
         explicit_path=args.source_file,
         test_mode=args.test_mode,
     )
+    source_sha256 = file_sha256(source_path)
 
     path = output_path(EXPERIMENT_ID, args.chunk_id, args.test_mode)
-    records_by_key, completed = load_checkpoint(path)
+    compatibility = {
+        "experiment_id": EXPERIMENT_ID,
+        "source_layout_version": SOURCE_LAYOUT_VERSION,
+        "debate_source_sha256": source_sha256,
+        "source_chunk_start": source_stats["source_chunk_start"],
+        "source_chunk_end": source_stats["source_chunk_end"],
+    }
+    records_by_key, completed = load_checkpoint(
+        path, required_metadata=compatibility
+    )
 
     metadata = base_metadata(
         EXPERIMENT_ID,
         "interactive_aba",
         args,
         judge_model=JUDGE_MODEL_ID,
-        debater_model=REUSED_DEBATER_MODEL_ID,
+        debater_model=SOURCE_DEBATER_MODEL_ID,
     )
+    metadata.update(source_stats)
     metadata.update(
         {
             "judge_information": [
@@ -112,23 +126,25 @@ def main():
                 "saved_a_turn1",
                 "saved_b_turn1",
                 "saved_a_turn2",
-                "saved_pro_first",
+                "saved_pro_first_or_a_is_pro",
             ],
             "turn_order": "ABA",
             "debate_source_file": source_path,
-            "debate_source_sha256": file_sha256(source_path),
-            "source_raw_records": source_raw_count,
-            "source_skipped_records": source_skipped,
+            "debate_source_basename": os.path.basename(source_path),
+            "debate_source_sha256": source_sha256,
             "debater_outputs_reused": True,
             "new_debater_generation": False,
             "loaded_models": [JUDGE_MODEL_ID],
         }
     )
 
+    if os.path.basename(source_path) != SOURCE_BASENAME and args.source_file is None:
+        raise RuntimeError("Unexpected default interactive source: %s" % source_path)
+
     if all_cases_complete(cases, completed):
         print(
-            "[COMPLETE] Interactive chunk already contains judgments for every available "
-            "saved debate; no model load needed."
+            "[COMPLETE] Interactive chunk already contains judgments for every saved "
+            "debate in its full-file slice; no model load needed."
         )
         save_checkpoint(path, metadata, records_by_key, len(cases))
         return
@@ -171,6 +187,7 @@ def main():
             "ground_truth": case["ground_truth"],
             "turn_order": "ABA",
             "pro_first": case["pro_first"],
+            "a_is_pro": case["pro_first"],
             "a_side": a_side,
             "b_side": b_side,
             "a_turn1": case["a_turn1"],
@@ -194,7 +211,7 @@ def main():
         print_case_result(index, len(cases), case, prediction, generation_complete)
 
     print(
-        "[COMPLETE] Interactive ABA chunk %d judged using saved debates only."
+        "[COMPLETE] Interactive ABA chunk %d judged using the saved full source only."
         % args.chunk_id,
         flush=True,
     )
