@@ -6,7 +6,7 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=24G
 #SBATCH --gres=gpu:1
-#SBATCH --array=0-15%4
+#SBATCH --array=12-15%4
 #SBATCH --requeue
 
 # Four controlled baseline conditions, each split into four resumable chunks:
@@ -22,7 +22,7 @@ set -Euo pipefail
 cd "${SLURM_SUBMIT_DIR:?Submit this file with sbatch from the project root}"
 
 module purge
-module load Python
+module load Python/3.12.3-GCCcore-13.3.0
 source NLPLab_env/bin/activate
 
 export HF_HUB_OFFLINE=1
