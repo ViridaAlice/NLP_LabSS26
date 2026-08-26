@@ -1,6 +1,6 @@
 {
     "metadata": {
-        "overall_accuracy": 56.21621621621622,
+        "overall_accuracy": 55.733333333333334,
         "use_manual": true
     },
     "results": [
@@ -26105,6 +26105,359 @@
                 "boolean_prob_true": 0.3015676930738543
             },
             "judge_output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Task: Decide whether a candidate Medical Subject Heading (MeSH) tag should be assigned to the article based on the provided abstract and indexing manual.\n    *   Input: Indexing manual (rules, check tags, MeSH trees, etc.), Abstract, Already Assigned Tags, Candidate Tag (\"Lung Neoplasms\").\n    *   Output Format: Valid JSON object with keys \"thinking\" (concise analysis) and \"answer\" (\"Yes\" or \"No\").\n    *   Constraint: \"thinking\" key MUST be FIRST. \"answer\" key MUST be AT THE VERY END. JSON only.\n\n2.  **Analyze the Abstract:**\n    *   Topic: Impact of Geriatric Emergency Department Initiative (GEDI) on clinical outcomes for older adults in Emergency Department (ED).\n    *   Population: Older community dwelling adults (≥75 years), First Nations peoples (≥55 years).\n    *   Condition/Screening: 4AT screening tool (cognitive impairment/delirium).\n    *   Outcomes: ED lengths of stay, admission rates, discharge home.\n    *   Key Concepts: Delirium, Emergency Department, Geriatric Initiative, Older Adults, Cognitive Impairment, Admissions, Discharges.\n    *   No mention of cancer, lung, neoplasms, tumors, respiratory diseases, etc.\n\n3.  **Analyze the Candidate Tag (\"Lung Neoplasms\"):**\n    *   This term refers to cancer of the lung.\n    *   Does the abstract discuss lung cancer? No.\n    *   Does the abstract discuss neoplasms in general? No.\n    *   Does the abstract discuss the lung as an organ of focus? No.\n\n4.  **Consult the Indexing Manual:**\n    *   Rule: \"Select for indexing only those subjects actually discussed as opposed to those subjects merely mentioned (and of little or no value in retrieval).\"\n    *   Rule: \"Do not attempt to correct bad science or point out mistakes.\"\n    *   Rule: \"Describe the concepts in an article using MeSH terms.\"\n    *   Check Tags: \"Check tags are routinely added... even if just mentioned.\" But \"Lung Neoplasms\" is not a check tag like HUMAN, ANIMAL, etc. It's a specific disease heading.\n    *   Purpose of study: \"examined the impact of the Geriatric Emergency Department Initiative (GEDI) on clinical outcomes for older community dwelling adults... with a completed 4AT.\" The focus is on delirium/cognitive status and ED management, not cancer.\n\n5.  **Evaluate the Association:**\n    *   Is \"Lung Neoplasms\" relevant to the study? No. The study is about geriatric delirium and ED care.\n    *   Does the abstract mention lung cancer? No.\n    *   Is it implied? No.\n    *   Manual Instruction: \"Select for indexing only those subjects actually discussed\".\n    *   Conclusion: The tag should not be assigned.\n\n6.  **Draft the Thinking:**\n    *   Review abstract content: Focuses on Geriatric Emergency Department Initiative, older adults, delirium, ED outcomes.\n    *   Review candidate tag: \"Lung Neoplasms\" refers to lung cancer.\n    *   Compare: No mention of lung, cancer, or neoplasms in the abstract.\n    *   Apply Manual Rules: Index only subjects actually discussed. Do not index implications.\n    *   Decision: No"
+        },
+        {
+            "pmid": "42018048",
+            "stage": "Round 3: Similar Tag",
+            "candidate_tag": "Thermosensing",
+            "assigned_tags": [
+                "Animals",
+                "Oxidative Stress",
+                "Caenorhabditis elegans",
+                "Longevity",
+                "Caenorhabditis elegans Proteins",
+                "Signal Transduction",
+                "Forkhead Transcription Factors",
+                "Drugs, Chinese Herbal",
+                "Antioxidants"
+            ],
+            "ground_truth": "No",
+            "use_manual": true,
+            "prediction": "Yes",
+            "is_correct": false,
+            "needed_fallback": true,
+            "confidence": {
+                "verdict_logprob": {
+                    "Yes": -22.77520751953125,
+                    "No": -23.39825439453125
+                },
+                "verdict_prob_belongs": 0.6509111951655322,
+                "boolean_logprob": {
+                    "true": -24.772207260131836,
+                    "false": -23.951894760131836
+                },
+                "boolean_prob_true": 0.3056973288424214
+            },
+            "judge_output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Task: Decide whether a candidate Medical Subject Heading (MeSH) tag (\"Thermosensing\") should be assigned to the article based on the provided abstract and indexing manual.\n    *   Input: NLM Indexing manual (rules for indexing, check tags, MeSH hierarchy), Article Abstract, Already Assigned Tags, Candidate Tag (\"Thermosensing\").\n    *   Output Format: Valid JSON object with \"thinking\" (under 180 words) and \"answer\" (\"Yes\" or \"No\").\n\n2.  **Analyze the Abstract:**\n    *   Subject: SRGBHSP (a traditional Chinese medicinal).\n    *   Model: *C. elegans* (Caenorhabditis elegans).\n    *   Focus: Aging modulatory effect, antioxidant properties, lifespan assays, oxidative stress, mitochondrial pathways (IIS longevity pathway), vitamin B6 metabolism.\n    *   Mechanisms: daf-16, FOXO, sod-3, gst-4, ROS, MDA, antioxidant enzymes.\n    *   Key Outcome: Extends lifespan, reduces oxidative metabolites, activates DAF-16/FOXO-dependent IIS signaling pathway.\n\n3.  **Analyze the Candidate Tag (\"Thermosensing\"):**\n    *   Definition (General Knowledge): Thermosensing refers to the ability to detect temperature changes.\n    *   Relevance to Abstract: Does the abstract mention temperature, heat shock response (unless linked to aging/antioxidant in a specific thermosensing context), or thermal regulation?\n    *   Scanning Abstract: No mention of temperature, heat, cold, thermos, or thermosensing mechanisms. The study focuses on aging, oxidative stress, lifespan, and specific metabolic/signaling pathways (IIS, Vitamin B6).\n\n4.  **Consult Indexing Manual:**\n    *   Rule: \"Select for indexing only those subjects actually discussed as opposed to those subjects merely mentioned.\"\n    *   Rule: \"Do not index implications or suggested future applications.\"\n    *   Rule: \"Index only what the article says.\"\n    *   Check Tags: \"Check tags are routinely added... even if just mentioned.\" (But \"Thermosensing\" is a main heading, not a check tag like HUMAN/ANIMAL).\n    *   Decision: The article discusses pharmacological effects on aging in *C. elegans*. There is no indication of thermal response or temperature detection.\n\n5.  **Evaluate Candidate Tag against Article Content:**\n    *   The article is about *aging modulatory effect* and *antioxidant* properties.\n    *   There is no mention of *thermosensing*.\n    *   Assigning \"Thermosensing\" would be indexing concepts not discussed.\n    *   Conclusion: No.\n\n6.  **Draft Thinking (Concise):**\n    *   Check abstract for mention of temperature, heat, or thermosensing mechanisms.\n    *   Abstract focuses on SRGBHSP's antioxidant, anti-inflammatory, and aging modulatory effects in *C. elegans*.\n    *   Mechanisms discussed include IIS signaling, daf-16, and oxidative stress.\n    *   No mention of thermal regulation or temperature detection.\n    *   Indexing manual states to select only subjects actually discussed.\n    *   Candidate tag \"Thermosensing\" is not supported by the text.\n\n7.  **Finalize JSON:**\n    *   \"thinking\": \"The abstract focuses on the antioxidant, anti-inflammatory, and aging modulatory effects"
+        },
+        {
+            "pmid": "42046740",
+            "stage": "Round 3: Similar Tag",
+            "candidate_tag": "Transcription, Genetic",
+            "assigned_tags": [
+                "Humans",
+                "Breast Neoplasms",
+                "Deep Learning",
+                "Female",
+                "Algorithms",
+                "Neural Networks, Computer",
+                "Genomics",
+                "Multiomics"
+            ],
+            "ground_truth": "No",
+            "use_manual": true,
+            "prediction": "Yes",
+            "is_correct": false,
+            "needed_fallback": true,
+            "confidence": {
+                "verdict_logprob": {
+                    "Yes": -22.76156234741211,
+                    "No": -23.63119125366211
+                },
+                "verdict_prob_belongs": 0.7046684752412938,
+                "boolean_logprob": {
+                    "true": -24.77155113220215,
+                    "false": -24.46295738220215
+                },
+                "boolean_prob_true": 0.4234580256008813
+            },
+            "judge_output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Task: Determine if a candidate MeSH tag (\"Transcription, Genetic\") should be assigned to the provided abstract.\n    *   Input: Indexing Manual (guidelines on check tags, MeSH, rules), Abstract, Already Assigned Tags, Candidate Tag.\n    *   Output Format: Valid JSON with \"thinking\" (under 180 words) and \"answer\" (\"Yes\" or \"No\").\n\n2.  **Analyze the Abstract:**\n    *   Topic: Breast cancer survival prediction.\n    *   Methods: Deep learning model (BiLSTM, CNN), MRMR feature selection.\n    *   Data Sources: METABRIC (n=1980), TCGA-BRCA (n=1080).\n    *   Data Types: Clinical, Copy Number Alteration (CNA), Gene Expression data.\n    *   Goal: Survival prediction, personalized treatment planning.\n    *   Results: High accuracy (98% METABRIC, 96% TCGA).\n\n3.  **Analyze the Candidate Tag:** \"Transcription, Genetic\"\n    *   This tag refers to the process of gene transcription or genetic transcription mechanisms.\n    *   Does the abstract discuss gene transcription?\n    *   It mentions \"Gene Expression data\". Gene expression results from transcription, but the study focuses on using *data* derived from expression for survival prediction, not the biological process of transcription itself.\n    *   It mentions \"Multi-omics\", \"Copy Number Alteration (CNA)\", \"Genome/Genetic\" (via Genomics tag).\n    *   Crucial Check: Is \"Transcription, Genetic\" (often indexed as GENETIC TRANSCRIPTION) discussed as a biological process in the study?\n    *   The study is a machine learning study using omics data. It analyzes existing data points (gene expression, CNA). It does not investigate the mechanism of transcription.\n    *   MeSH Guideline: \"Select for indexing only those subjects actually discussed as opposed to those subjects merely mentioned\".\n    *   The abstract mentions \"gene expression data\" as a data modality. Using gene expression data does not necessarily require indexing \"Transcription, Genetic\" (which usually points to the biological mechanism of RNA synthesis).\n    *   However, \"Genetic\" might be too broad if \"Genes\" or \"Gene Expression Profiling\" isn't used. But the candidate is specifically \"Transcription, Genetic\".\n    *   Let's check the Already Assigned Tags: \"Genomics\". This covers the broader field.\n    *   Is \"Transcription, Genetic\" relevant? The abstract focuses on the *model* and *prediction*, not the *transcription process*. The data comes from gene expression (post-transcriptional or transcriptional levels), but the study is about ML application.\n    *   Usually, for bioinformatics/ML papers, unless the paper validates a transcription factor or discusses transcriptional regulation, \"Transcription, Genetic\" is not appropriate. The data is \"Gene Expression\".\n    *   MeSH term \"Genetic Transcription\" (Genetic Transcription) exists.\n    *   Abstract says: \"using multi-omics data... clinical, copy number alteration (CNA), and gene expression data.\"\n    *   Does using gene expression data imply indexing \"Transcription\"? Often, \"Gene Expression Profiling\" is the preferred term for the data type analysis. \"Transcription, Genetic\" is specific to the biological process.\n    *   Given the instruction \"Select for indexing only those subjects actually"
+        },
+        {
+            "pmid": "42026946",
+            "stage": "Round 3: Similar Tag",
+            "candidate_tag": "Water Pollution, Chemical",
+            "assigned_tags": [
+                "Humans",
+                "Sarcopenia",
+                "Diabetes Mellitus, Type 2",
+                "Cross-Sectional Studies",
+                "Male",
+                "Female",
+                "Health Knowledge, Attitudes, Practice",
+                "Middle Aged",
+                "Aged",
+                "China",
+                "Surveys and Questionnaires",
+                "Adult"
+            ],
+            "ground_truth": "No",
+            "use_manual": true,
+            "prediction": "No",
+            "is_correct": true,
+            "needed_fallback": false,
+            "confidence": {
+                "verdict_logprob": {
+                    "Yes": -23.14632225036621,
+                    "No": -24.11702537536621
+                },
+                "verdict_prob_belongs": 0.725259623330965,
+                "boolean_logprob": {
+                    "true": -25.601696014404297,
+                    "false": -24.632946014404297
+                },
+                "boolean_prob_true": 0.2751297238231752
+            },
+            "judge_output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Task: Decide whether a candidate Medical Subject Heading (MeSH) tag should be assigned to the article.\n    *   Input: Indexing manual (NLM guidelines), Abstract of a medical article, Already Assigned Tags, Candidate Tag.\n    *   Output Format: Valid JSON object with \"thinking\" (first, under 180 words) and \"answer\" (last, \"Yes\" or \"No\").\n\n2.  **Analyze the Abstract:**\n    *   Topic: Sarcopenia in Type 2 Diabetes Mellitus (T2DM) patients.\n    *   Study Design: Cross-sectional survey investigating Knowledge, Attitudes, and Practices (KAP).\n    *   Population: Adults with T2DM in China.\n    *   Key Findings: Low knowledge, favorable attitudes, moderate practice, low clinical diagnosis rates.\n    *   Context: Diabetes care, routine care, screening.\n\n3.  **Analyze the Candidate Tag:**\n    *   Tag: \"Water Pollution, Chemical\"\n    *   Category: Environmental/Chemical (Tree D - Chemicals and Drugs, or Tree J - Technology/Industry/Agriculture).\n    *   Relevance: Does the article discuss water pollution or chemicals?\n\n4.  **Evaluate Relevance:**\n    *   The abstract mentions \"Type 2 diabetes mellitus\", \"Sarcopenia\", \"Knowledge, Attitudes, and Practices\", \"China\", \"Diabetes care\".\n    *   There is no mention of water, pollution, chemicals, environmental factors, or toxic substances causing sarcopenia or diabetes in this specific context.\n    *   Sarcopenia and Diabetes are metabolic/muscular conditions, not primarily linked to water pollution in this study.\n    *   The candidate tag is completely unrelated to the content of the abstract.\n\n5.  **Consult Indexing Manual:**\n    *   \"Select for indexing only those subjects actually discussed as opposed to those subjects merely mentioned (and of little or no value in retrieval).\"\n    *   \"Do not index implications or suggested future applications.\"\n    *   \"Check Tags... HUMAN, FEMALE, ADULT...\". (Candidate tag is not a check tag).\n    *   \"MeSH Headings... Rule of Three...\".\n    *   The candidate tag is a main heading (likely \"Water Pollution\" or \"Chemicals\").\n    *   Since the article does not discuss water pollution or chemicals, this tag should not be assigned.\n\n6.  **Formulate Thinking:**\n    *   The abstract focuses on sarcopenia, type 2 diabetes, and patient knowledge/attitudes/practices in China.\n    *   There is no mention of water pollution, environmental toxins, or chemicals affecting these conditions.\n    *   The candidate tag is irrelevant to the study's subject matter.\n    *   According to the manual, index only subjects actually discussed.\n    *   Therefore, the candidate tag should not be assigned.\n\n7.  **Draft JSON:**\n    *   \"thinking\": \"The abstract focuses on sarcopenia, type 2 diabetes, and patient knowledge/attitudes/practices among adults in China. There is no mention of water pollution, environmental toxins, or chemical substances affecting the study population or outcomes. The candidate tag 'Water Pollution, Chemical' is irrelevant to the medical content described. Per the indexing manual, only subjects actually discussed should be indexed. Thus, the tag does not belong.\"\n    *   \"answer\": \"No\"\n\n8.  **Check Constraints:**\n    *   JSON"
+        },
+        {
+            "pmid": "42028905",
+            "stage": "Round 3: Similar Tag",
+            "candidate_tag": "Behavior, Addictive",
+            "assigned_tags": [
+                "Humans",
+                "Female",
+                "Finland",
+                "Male",
+                "Adult",
+                "Middle Aged",
+                "Alcohol Drinking",
+                "Socioeconomic Factors",
+                "Binge Drinking",
+                "Public Sector"
+            ],
+            "ground_truth": "No",
+            "use_manual": true,
+            "prediction": "Yes",
+            "is_correct": false,
+            "needed_fallback": true,
+            "confidence": {
+                "verdict_logprob": {
+                    "Yes": -22.45664405822754,
+                    "No": -23.62461280822754
+                },
+                "verdict_prob_belongs": 0.7627776615116516,
+                "boolean_logprob": {
+                    "true": -24.63834571838379,
+                    "false": -24.10709571838379
+                },
+                "boolean_prob_true": 0.3702253925955866
+            },
+            "judge_output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Task: Determine if a candidate MeSH tag (\"Behavior, Addictive\") should be assigned to a given medical article based on an abstract and indexing manual.\n    *   Input: Indexing Manual (rules on Check Tags, MeSH Trees, Rule of Three, etc.), Abstract, Already Assigned Tags, Candidate Tag.\n    *   Output Format: Valid JSON with \"thinking\" (concise, under 180 words) and \"answer\" (\"Yes\" or \"No\").\n\n2.  **Analyze the Abstract:**\n    *   Topic: Associations between childhood/adulthood socioeconomic circumstances and drinking patterns.\n    *   Population: Young and early midlife employees (n=5875, 79% women).\n    *   Key Measures: Drinking patterns (frequent, binge, problem drinking using CAGE).\n    *   Outcomes: Odds ratios, associations, preventive measures.\n    *   Context: Epidemiological/Sociological study on alcohol use.\n\n3.  **Analyze the Candidate Tag:** \"Behavior, Addictive\"\n    *   MeSH Tree: G (Phenomena and Processes) -> Behavior.\n    *   Sub-tree: ADDICTIVE BEHAVIOR.\n    *   Relevance: Does the article discuss addictive behavior?\n    *   Abstract content: Discusses \"problem drinking\", \"binge drinking\", \"alkohol-related inequalities\".\n    *   Distinction: \"Problem drinking\" or \"binge drinking\" are often associated with addiction/substance abuse, but the study focuses on *socioeconomic circumstances* and *drinking patterns* rather than the *addiction mechanism* or *addictive behavior* per se. However, \"problem drinking\" often indexes under \"Substance-Related Disorders\" or \"Alcohol Drinking\".\n    *   Manual Check: The manual emphasizes indexing what is actually discussed. \"Alcohol Drinking\" is already assigned. \"Behavior, Addictive\" is a broader term.\n    *   Specificity: The study focuses on patterns (frequent, binge, problem) linked to SES. Is \"Addictive Behavior\" the core concept?\n    *   Comparison: Usually, \"Alcohol Drinking\" covers the consumption. \"Addictive Behavior\" implies a dependency disorder focus. The abstract mentions \"problem drinking\" and \"adverse drinking patterns\" but the primary aim is socioeconomic association, not the pathology of addiction.\n    *   However, looking at standard indexing practices for \"Addictive Behavior\": Usually reserved for studies specifically on the behavioral aspects of addiction, drug seeking, dependency, etc. Alcohol drinking is often indexed under \"Alcohol Drinking\" or \"Drinking Patterns\".\n    *   Wait, is \"Behavior, Addictive\" a valid MeSH term? Yes, \"ADDICTIVE BEHAVIOR\".\n    *   Is it appropriate here? The abstract discusses drinking patterns (binge, frequent, problem). \"Problem drinking\" is a precursor to addiction often, but the study is about SES determinants.\n    *   Manual Instruction: \"Select for indexing only those subjects actually discussed as opposed to those subjects merely mentioned\". \"Describe the concepts in an article using MeSH terms\".\n    *   Already Assigned Tags include \"Alcohol Drinking\". \"Behavior, Addictive\" is redundant or less specific if \"Alcohol Drinking\" is present. Usually, \"Alcohol Drinking\" is the preferred term over \"Addictive Behavior\" for general alcohol consumption studies unless the study is specifically about addiction pathology.\n    *   Is \"Addictive Behavior\" discussed?"
+        },
+        {
+            "pmid": "42044959",
+            "stage": "Round 3: Similar Tag",
+            "candidate_tag": "Tendon Injuries",
+            "assigned_tags": [
+                "Humans",
+                "Female",
+                "Male",
+                "Prospective Studies",
+                "Middle Aged",
+                "Adult",
+                "COVID-19",
+                "United States",
+                "Influenza, Human",
+                "Aged",
+                "SARS-CoV-2",
+                "Respiratory Tract Infections",
+                "Respiratory Syncytial Virus Infections",
+                "Risk Factors",
+                "Incidence",
+                "Young Adult",
+                "Antiviral Agents"
+            ],
+            "ground_truth": "No",
+            "use_manual": true,
+            "prediction": "Yes",
+            "is_correct": false,
+            "needed_fallback": true,
+            "confidence": {
+                "verdict_logprob": {
+                    "Yes": -22.455326080322266,
+                    "No": -23.233646392822266
+                },
+                "verdict_prob_belongs": 0.6853179899693378,
+                "boolean_logprob": {
+                    "true": -24.531137466430664,
+                    "false": -24.359262466430664
+                },
+                "boolean_prob_true": 0.45713671682749485
+            },
+            "judge_output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Task: Decide whether a candidate MeSH tag (\"Tendon Injuries\") should be assigned to an article based on the provided abstract and indexing manual.\n    *   Input: Indexing manual (rules for check tags, MeSH trees, \"Rule of Three\", etc.) and an abstract of a study about respiratory outcomes (COVID-19, Influenza, RSV) in a community-based cohort.\n    *   Output: Valid JSON object with \"thinking\" (concise analysis, under 180 words) and \"answer\" (\"Yes\" or \"No\").\n\n2.  **Analyze the Abstract:**\n    *   Study Type: Prospective cohort study, community-based.\n    *   Topic: Respiratory outcomes, burden, impact of acute and postacute COVID-19, influenza, RSV.\n    *   Objectives: Measure incidence/symptom burden of respiratory viruses, risk factors for postacute symptoms, impact of antivirals/vaccinations.\n    *   Participants: Adults ≥18 years, US residents, high risk for severe outcomes.\n    *   Data Collection: Home testing (antigen), symptom reporting, PCR testing for SARS-CoV-2, Influenza, RSV.\n    *   Outcomes: Respiratory symptoms, test positivity rates for respiratory viruses.\n    *   Demographics: Mostly over 50, female, non-Hispanic white, high income, diverse locations.\n    *   Existing Tags: Humans, Female, Male, Prospective Studies, Middle Aged, Adult, COVID-19, United States, Influenza, Human, Aged, SARS-CoV-2, Respiratory Tract Infections, Respiratory Syncytial Virus Infections, Risk Factors, Incidence, Young Adult, Antiviral Agents.\n    *   Candidate Tag: Tendon Injuries.\n\n3.  **Evaluate Candidate Tag (\"Tendon Injuries\"):**\n    *   Does the abstract mention tendons or tendon injuries?\n    *   Scan text: \"Respiratory outcomes\", \"COVID-19\", \"influenza\", \"respiratory syncytial virus\", \"respiratory symptoms\", \"antivirals\", \"vaccinations\".\n    *   No mention of musculoskeletal issues, tendons, or specific injuries unrelated to the respiratory focus.\n    *   The study focuses on respiratory infections and their acute/postacute respiratory symptom burden. While COVID-19 can affect other systems, the abstract explicitly states the focus is on \"Respiratory Outcomes\", \"respiratory symptoms\", \"major respiratory viruses\".\n    *   According to the manual: \"Select for indexing only those subjects actually discussed as opposed to those subjects merely mentioned\".\n    *   Since there is no discussion of tendon injuries in the text provided, and the study scope is strictly respiratory viruses and outcomes, this tag is irrelevant.\n\n4.  **Check Manual Rules:**\n    *   \"Select for indexing only those subjects actually discussed\".\n    *   \"Do not index implications or suggested future applications.\"\n    *   \"Check Tags... mentioned in almost every article... (human, animal, male, female...)\" -> Tendon injuries is not a check tag.\n    *   MeSH Tag \"Tendon Injuries\" is a specific disease/injury term.\n    *   Since the study is about respiratory viruses (SARS-CoV-2, Influenza, RSV) and their respiratory symptoms, \"Tendon Injuries\" is not supported by the text.\n\n5.  **Conclusion"
+        },
+        {
+            "pmid": "42036874",
+            "stage": "Round 3: Similar Tag",
+            "candidate_tag": "Esophageal Neoplasms",
+            "assigned_tags": [
+                "Animals",
+                "Gastroesophageal Reflux",
+                "Tight Junctions",
+                "Rats",
+                "Receptor, PAR-2",
+                "Esophageal Mucosa",
+                "Male",
+                "Rabeprazole",
+                "Rats, Sprague-Dawley",
+                "Inflammation",
+                "Disease Models, Animal"
+            ],
+            "ground_truth": "No",
+            "use_manual": true,
+            "prediction": "Yes",
+            "is_correct": false,
+            "needed_fallback": true,
+            "confidence": {
+                "verdict_logprob": {
+                    "Yes": -23.1624698638916,
+                    "No": -23.2611026763916
+                },
+                "verdict_prob_belongs": 0.5246382320830513,
+                "boolean_logprob": {
+                    "true": -25.163909912109375,
+                    "false": -23.746917724609375
+                },
+                "boolean_prob_true": 0.19513354679502126
+            },
+            "judge_output": "The user wants to know if the candidate tag \"Esophageal Neoplasms\" should be assigned to the article based on the provided abstract and indexing manual.\n\n1.  **Analyze the Abstract:**\n    *   **Topic:** Gastroesophageal reflux disease (GERD), protease-activated receptor 2 (PAR2), tight junctions (TJs), Claudins, inflammation (IL-8, IL-1β, M1 macrophages).\n    *   **Study Design:** In vivo (rats) and in vitro experiments.\n    *   **Intervention:** Rabeprazole (PPI) and GB-88 (PAR2 inhibitor).\n    *   **Outcome:** Effects on barrier function, inflammation, and PAR2 expression.\n    *   **Key Disease:** GERD (Gastroesophageal Reflux Disease).\n    *   **Key Organ:** Esophageal mucosa.\n    *   **Key Pathology:** Inflammation, barrier disruption.\n\n2.  **Analyze the Candidate Tag:** \"Esophageal Neoplasms\".\n    *   **Definition:** Neoplasms refers to tumors, cancers, or growths.\n    *   **Relevance to Abstract:** The abstract discusses GERD (reflux disease), inflammation, and barrier function. It does *not* mention cancer, tumors, neoplasia, or malignant growths in the esophagus. It focuses on the mucosal barrier and inflammatory response to reflux, not cancer development.\n\n3.  **Consult Indexing Manual:**\n    *   **Rule:** \"Select for indexing only those subjects actually discussed as opposed to those subjects merely mentioned (and of little or no value in retrieval).\"\n    *   **Check:** Is esophageal neoplasia discussed? No.\n    *   **Check:** Is the disease discussed? GERD is the disease.\n    *   **Check:** Is there a check tag or main heading for Neoplasms? No.\n    *   **Check Tags:** HUMAN, ANIMAL, FEMALE/Male, AGE, etc. (Not Neoplasms).\n    *   **MeSH:** Esophageal Neoplasms is specific to cancer/tumors.\n    *   **Existing Tags:** Animals, Gastroesophageal Reflux, Tight Junctions, Rats, Receptor, PAR-2, Esophageal Mucosa, Male, Rabeprazole, Rats, Sprague-Dawley, Inflammation, Disease Models, Animal. None of these are Neoplasms.\n\n4.  **Conclusion:** The article is about GERD (reflux disease) and inflammation, not esophageal cancer or neoplasms. Therefore, the candidate tag \"Esophageal Neoplasms\" is incorrect.\n\n5.  **Draft Thinking:**\n    *   Identify the main disease in the abstract: GERD (Gastroesophageal Reflux Disease).\n    *   Identify the pathology discussed: Inflammation, tight junctions, barrier function.\n    *   Evaluate the candidate tag: \"Esophageal Neoplasms\" refers to tumors/cancer.\n    *   Compare: The abstract does not mention cancer, tumors, or neoplasia. It focuses on reflux and inflammation.\n    *   Manual adherence: Do not index subjects merely mentioned or not discussed as the main point. The tag is not relevant to the content.\n    *   Result: No.\n\n6.  **Final Output:** JSON format.\n\n    *   `thinking`: The article discusses Gastroesophageal Reflux Disease ("
+        },
+        {
+            "pmid": "42044973",
+            "stage": "Round 3: Similar Tag",
+            "candidate_tag": "Peptides",
+            "assigned_tags": [
+                "Cross-Over Studies",
+                "Humans",
+                "Models, Statistical",
+                "Computer Simulation",
+                "Research Design"
+            ],
+            "ground_truth": "No",
+            "use_manual": true,
+            "prediction": "Yes",
+            "is_correct": false,
+            "needed_fallback": true,
+            "confidence": {
+                "verdict_logprob": {
+                    "Yes": -22.162017822265625,
+                    "No": -22.775299072265625
+                },
+                "verdict_prob_belongs": 0.6486889357268106,
+                "boolean_logprob": {
+                    "true": -24.56732177734375,
+                    "false": -24.41888427734375
+                },
+                "boolean_prob_true": 0.4629586132438158
+            },
+            "judge_output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Task: Decide if a candidate Medical Subject Heading (MeSH) tag (\"Peptides\") should be assigned to the article based on the provided abstract and indexing manual.\n    *   Output Format: Valid JSON object with \"thinking\" (under 180 words) and \"answer\" (\"Yes\" or \"No\") at the very end.\n    *   Input: Indexing manual (rules for Check Tags, MeSH Headings, Rule of Three) and an abstract of a research paper.\n    *   Candidate Tag: \"Peptides\".\n\n2.  **Analyze the Abstract:**\n    *   Topic: Statistical models for analyzing crossover designs.\n    *   Specific Problem: Carry-over effects in repeated measurements.\n    *   Methodology: Penalized semiparametric Generalized Estimating Equations (GEE) approach.\n    *   Method details: Derive identifiability conditions, theoretical guarantees, sandwich variance formula, simulation studies, real data application.\n    *   Content: Focus is on *statistics*, *methodology*, *mathematical estimation*, *clinical/behavioral research design*.\n    *   Mention of \"Peptides\": None found in the abstract text.\n\n3.  **Analyze the Indexing Manual:**\n    *   Rule: \"Select for indexing only those subjects actually discussed as opposed to those subjects merely mentioned (and of little or no value in retrieval).\"\n    *   Rule: \"Do not index implications or suggested future applications.\"\n    *   Rule: \"Describes the concepts in an article using MeSH terms.\"\n    *   Check Tags: HUMAN, ANIMAL, FEMALE, PREGNANCY, AGE GROUPS, etc., are mandatory check tags if mentioned.\n    *   MeSH Headings: Must correspond to the concepts discussed.\n\n4.  **Evaluate Candidate Tag (\"Peptides\"):**\n    *   Does the abstract discuss peptides? No.\n    *   Does the abstract discuss biological substances, proteins, or molecules? No, it discusses statistical methods (GEE, penalized estimators, sandwich variance).\n    *   Is it a Check Tag? No (Peptide is not a standard check tag like Human/Animal/Human/Female/Adult/Child).\n    *   Is it a relevant MeSH Heading? Unless the paper explicitly mentions or analyzes peptides (e.g., peptide hormones, drug peptides), it should not be indexed. The paper is purely methodological/statistical.\n    *   Manual Instruction: \"Select for indexing only those subjects actually discussed\". Since \"Peptides\" are not discussed in the text provided, it should not be indexed.\n\n5.  **Formulate the Thinking:**\n    *   Review abstract content: It focuses on statistical methodology (GEE, carry-over effects, simulation) for crossover designs.\n    *   Check for \"Peptides\": The word \"Peptides\" does not appear in the abstract.\n    *   Apply manual rules: \"Select for indexing only those subjects actually discussed\".\n    *   Conclusion: The tag is not supported by the text and describes a biological entity not mentioned in this statistical methodology paper.\n\n6.  **Construct JSON:**\n    *   \"thinking\": \"The abstract discusses statistical methodology (penalized semiparametric GEE) for analyzing carry-over effects in crossover designs. It contains no mention of biological substances, proteins, or peptides. According to the manual, indexers must select only subjects actually discussed, not merely mentioned. Since 'Peptides' are not discussed in the text, the tag should not be assigned.\""
+        },
+        {
+            "pmid": "42049430",
+            "stage": "Round 3: Similar Tag",
+            "candidate_tag": "Transcriptional Regulator ERG",
+            "assigned_tags": [
+                "Humans",
+                "Child",
+                "Autism Spectrum Disorder",
+                "NLR Family, Pyrin Domain-Containing 3 Protein",
+                "Male",
+                "Female",
+                "Osteoprotegerin",
+                "RANK Ligand",
+                "Adolescent",
+                "Child, Preschool",
+                "Receptor Activator of Nuclear Factor-kappa B",
+                "Signal Transduction",
+                "Gene Expression Regulation",
+                "Biomarkers",
+                "Inflammasomes"
+            ],
+            "ground_truth": "No",
+            "use_manual": true,
+            "prediction": "Yes",
+            "is_correct": false,
+            "needed_fallback": true,
+            "confidence": {
+                "verdict_logprob": {
+                    "Yes": -23.089441299438477,
+                    "No": -23.200769424438477
+                },
+                "verdict_prob_belongs": 0.527803321095774,
+                "boolean_logprob": {
+                    "true": -24.82103729248047,
+                    "false": -24.01634979248047
+                },
+                "boolean_prob_true": 0.3090237111195067
+            },
+            "judge_output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Task: Decide whether a candidate Medical Subject Heading (MeSH) tag should be assigned to the article based on the provided abstract and indexing manual.\n    *   Input: Indexing Manual (NLM style), Abstract of a research article, Already Assigned Tags, Candidate Tag (\"Transcriptional Regulator ERG\").\n    *   Output: Valid JSON object with \"thinking\" (first, <180 words) and \"answer\" (last, \"Yes\" or \"No\").\n\n2.  **Analyze the Abstract:**\n    *   Topic: Autism Spectrum Disorder (ASD).\n    *   Focus: Neuroinflammatory process, gene expression levels of NLRP-3 and RANK-RANKL-OPG pathways.\n    *   Subjects: 50 children with ASD, 34 siblings, 16 controls.\n    *   Age: 3-18 years.\n    *   Methods: Clinical observation, scales (CARS, TCDI, etc.), gene expression analysis.\n    *   Results: Up-regulation of specific genes (*IL-1β, Casp1, NLRP3, NLRP1, TNFRSF11B, TNFRSF11A, TNFSF11*).\n    *   Conclusion: RANK-RANKL-OPG and NLRP3 inflammasome complexes influence neurologic development in ASD.\n    *   Keywords mentioned in text: Autism, Gene Expression, Inflammatory pathways, NLRP3, RANK, Cytokines.\n\n3.  **Analyze the Candidate Tag:**\n    *   Tag: \"Transcriptional Regulator ERG\".\n    *   Relevance: This term relates to a specific type of transcription factor (ERG domain).\n    *   Search for \"ERG\" in the abstract:\n        *   Genes mentioned: *IL-1β, Casp1, NLRP3, NLRP1, TNFRSF11B, TNFRSF11A, TNFSF11*.\n        *   Pathways mentioned: NLRP-3, RANK-RANKL-OPG, Inflammasome.\n        *   Does \"ERG\" appear? No.\n        *   Is there any discussion about ERG transcription factors or similar? No.\n    *   Relevance check: The study is about neuroinflammation in autism, specifically looking at specific genes related to inflammation (NLRP3, TNFRSF11B/A, TNFSF11). There is no mention of ERG transcription factors.\n\n4.  **Consult Indexing Manual Rules:**\n    *   \"Select for indexing only those subjects actually discussed as opposed to those subjects merely mentioned (and of little or no value in retrieval).\"\n    *   \"Indexers always try to select the most specific term that describes the concepts in the article.\" (Rule of Three).\n    *   \"Do not index implications or suggested future applications.\"\n    *   Check the Already Assigned Tags: \"NLR Family\", \"Pyridin Domain-Containing 3 Protein\" (Wait, manual says \"Pyrin Domain-Containing 3 Protein\" which is NLRP3), \"Osteoprotegerin\", \"RANK Ligand\", \"Signal Transduction\", \"Gene Expression Regulation\". These align with the abstract.\n    *   Candidate Tag \"Transcriptional Regulator ERG\" is a very specific MeSH term (C13.689.302.314."
+        },
+        {
+            "pmid": "42060681",
+            "stage": "Round 3: Similar Tag",
+            "candidate_tag": "Epithelial-Mesenchymal Transition",
+            "assigned_tags": [
+                "Humans",
+                "Graft Rejection",
+                "Gene Expression Profiling",
+                "Transcriptome",
+                "Allografts",
+                "Heart Transplantation",
+                "Kidney Transplantation",
+                "Gene Regulatory Networks",
+                "Organ Specificity"
+            ],
+            "ground_truth": "No",
+            "use_manual": true,
+            "prediction": "Yes",
+            "is_correct": false,
+            "needed_fallback": true,
+            "confidence": {
+                "verdict_logprob": {
+                    "Yes": -23.374025344848633,
+                    "No": -23.394044876098633
+                },
+                "verdict_prob_belongs": 0.5050047156637741,
+                "boolean_logprob": {
+                    "true": -25.390321731567383,
+                    "false": -24.894227981567383
+                },
+                "boolean_prob_true": 0.3784590902141952
+            },
+            "judge_output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Task: Decide whether a candidate Medical Subject Heading (MeSH) tag should be assigned to the article based on the provided abstract and indexing manual.\n    *   Input: Indexing manual (rules for Check Tags, MeSH Headings, Rule of Three, etc.), Abstract text, Already Assigned Tags, Candidate Tag (\"Epithelial-Mesenchymal Transition\").\n    *   Output Format: JSON object with \"thinking\" (concise analysis, <180 words) and \"answer\" (\"Yes\" or \"No\").\n\n2.  **Analyze the Abstract:**\n    *   Topic: Long-term transplant success, allograft rejection.\n    *   Method: Network-based systems biology analysis of transcriptomic data from liver, kidney, and heart transplant biopsies.\n    *   Findings: Conserved, pan-organ molecular framework of rejection; six-module immune cascade; 24-gene cell cycle signature; 172-gene immune signature; 20-gene immune signature.\n    *   Validation: Lung transplant cohort.\n    *   Conclusion: Pan-organ molecular framework, cell cycle dysregulation, standardized diagnostic platforms.\n    *   Key Concepts: Allograft rejection, gene co-expression networks, transcriptomics, immune signature, cell cycle, transplant (liver, kidney, heart, lung).\n\n3.  **Analyze the Candidate Tag:** \"Epithelial-Mesenchymal Transition\" (EMT).\n    *   Definition: A biological process where epithelial cells lose their polarity and cell-cell adhesion and gain migratory and invasive properties to become mesenchymal stem cells. Often associated with cancer metastasis and fibrosis.\n    *   Relevance to Abstract: The abstract discusses \"allograft rejection\", \"immune cascade\", \"cell cycle signature\", and \"transcriptomic data\". It does not explicitly mention epithelial cells, mesenchymal cells, migration, invasion, or fibrosis associated with EMT. It focuses on immune responses and cell cycle proliferation in the context of transplant rejection.\n\n4.  **Apply Indexing Manual Rules:**\n    *   **Selection Rule:** \"Select for indexing only those subjects actually discussed as opposed to those subjects merely mentioned\".\n    *   **Check Tags vs. MeSH:** EMT is a specific biological process (MeSH C or G). It is not a check tag (like HUMAN, PREGNANCY).\n    *   **Major Points:** The major points are allograft rejection, systems biology, transcriptomics, immune signatures, cell cycle.\n    *   **Evidence:** Does the text discuss Epithelial-Mesenchymal Transition? No. It discusses \"cellular proliferation\" in the context of rejection pathology. While EMT can occur in rejection/fibrosis, the abstract does not claim this mechanism. Indexing based on implications is forbidden (\"Do not index implications or suggested future applications\").\n    *   **Already Assigned Tags:** Humans, Graft Rejection, Gene Expression Profiling, Transcriptome, Allografts, Heart Transplantation, Kidney Transplantation, Gene Regulatory Networks, Organ Specificity. None suggest EMT is relevant.\n\n5.  **Evaluate Decision:**\n    *   The abstract focuses on immune cascades and cell cycle signatures in transplant rejection.\n    *   EMT is not mentioned.\n    *   Indexing requires selecting subjects *actually discussed*.\n    *   Therefore, the candidate tag should *not* be assigned.\n\n6.  **Draft Thinking:**\n    *   The abstract focuses on allograft rejection mechanisms using transcript"
+        },
+        {
+            "pmid": "42053983",
+            "stage": "Round 3: Similar Tag",
+            "candidate_tag": "Uveal Diseases",
+            "assigned_tags": [
+                "Animals",
+                "Dogs",
+                "Dog Diseases",
+                "Bronchoalveolar Lavage Fluid",
+                "Male",
+                "Female",
+                "Larva"
+            ],
+            "ground_truth": "No",
+            "use_manual": true,
+            "prediction": "No",
+            "is_correct": true,
+            "needed_fallback": false,
+            "confidence": {
+                "verdict_logprob": {
+                    "Yes": -23.095659255981445,
+                    "No": -24.138628005981445
+                },
+                "verdict_prob_belongs": 0.7394224220868858,
+                "boolean_logprob": {
+                    "true": -24.995534896850586,
+                    "false": -24.065847396850586
+                },
+                "boolean_prob_true": 0.28298811828270554
+            },
+            "judge_output": "The user wants to determine if the candidate tag \"Uveal Diseases\" should be assigned to the article based on the provided abstract and indexing manual.\n\n1.  **Analyze the Abstract:**\n    *   **Topic:** Diagnosis of lungworm infections in dogs.\n    *   **Specific Organism:** *Oslerus osleri*, *Filaroides hirthi*.\n    *   **Method:** Bronchoalveolar lavage (BAL) cytology, lesion histopathology, molecular characterization (PCR, sequencing).\n    *   **Subjects:** Dogs (young dogs).\n    *   **Condition:** Lungworm infections (pulmonary parasitic infections).\n    *   **Key Terms:** Lungworm, BAL, histopathology, dogs, molecular characterisation, *Oslerus osleri*.\n\n2.  **Analyze the Candidate Tag:** \"Uveal Diseases\".\n    *   **Definition:** Uveal diseases refer to conditions affecting the uvea (iris, ciliary body, choroid) of the eye. This is an ophthalmology topic.\n    *   **Relevance:** Does the abstract discuss the eye (uvea) or eye diseases?\n    *   **Abstract Content:** The abstract explicitly discusses lungworm infections, bronchoalveolar lavage (lungs), and histopathology of lesions. There is no mention of the eye, vision, uvea, or ophthalmology.\n\n3.  **Apply Indexing Manual Rules:**\n    *   **Rule:** \"Select for indexing only those subjects actually discussed as opposed to those subjects merely mentioned\".\n    *   **Rule:** \"Check Tags... are routinely added... if an article only mentions that the subject of the study was a pregnant 35 year old, the indexer must check the tags...\".\n    *   **Rule:** \"Indexers must check the appropriate age group check tags...\".\n    *   **Rule:** \"Index only what the article says\".\n    *   **Conclusion:** The article is about respiratory/parasitic infections in dogs, not eye diseases. \"Uveal Diseases\" is unrelated to the content.\n\n4.  **Evaluate Already Assigned Tags:**\n    *   Animals, Dogs, Dog Diseases, Bronchoalveolar Lavage Fluid, Male, Female, Larva.\n    *   These are relevant. \"Uveal Diseases\" is not in this list and is not relevant to the abstract.\n\n5.  **Determine Output:**\n    *   The candidate tag \"Uveal Diseases\" is incorrect.\n    *   Answer: \"No\".\n\n6.  **Construct JSON:**\n    *   \"thinking\": Explain that the abstract discusses lungworm infections in dogs (respiratory system), not eye/uveal conditions.\n    *   \"answer\": \"No\".\n\n7.  **Check Constraints:**\n    *   Output ONLY valid JSON.\n    *   'thinking' key FIRST.\n    *   'answer' key LAST.\n    *   'thinking' under 180 words.\n\nDrafting thinking:\nThe abstract describes a study on diagnosing lungworm infections (*Oslerus osleri*) in dogs using bronchoalveolar lavage (BAL) and tissue histopathology. The focus is on the respiratory system and parasitic diseases. The candidate tag \"Uveal Diseases\" refers to conditions affecting the eye's uvea (iris, ciliary body, choroid). There is no mention of ocular pathology, eye examinations, or uveal structures in the abstract. According to the indexing manual, indexers should only select subjects actually discussed. Since the study concerns respiratory parasitic infections"
         }
     ]
 }
