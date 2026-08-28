@@ -1,0 +1,22 @@
+condition_id,completion_rate,display_name,eligible_for_primary_ranking,expected_records,fallback_count,fallback_rate,is_complete,missing_records,records,source_files,unknown_predictions,valid_prediction_coverage
+asymmetric_titleonly.baseline,1.0,Title-only asymmetric — baseline,True,3000,0,,True,0,3000,"[""asymmetric_titleonly_baseline_full.json""]",0,1.0
+asymmetric_titleonly.interactive.ABA,1.0,Title-only asymmetric — interactive ABA,True,3000,0,,True,0,3000,"[""asymmetric_titleonly_interactive_aba_full.json""]",0,1.0
+asymmetric_titleonly.statement,1.0,Title-only asymmetric — statements,True,3000,0,,True,0,3000,"[""asymmetric_titleonly_statement_full.json""]",0,1.0
+baseline.legacy_0.8B,0.3963333333333333,Baseline 0.8B — legacy,False,3000,0,,False,1811,1189,"[""baseline_results_merged.json""]",486,0.5912531539108494
+baseline.older_pydantic_0.8B,1.0,Baseline 0.8B — older Pydantic,True,3000,0,,True,0,3000,"[""pydantic_baseline_results_full.json""]",0,1.0
+baseline.robust_0.8B.no_manual,1.0,Baseline 0.8B — no manual,True,3000,0,0.0,True,0,3000,"[""baseline_nomanual_results_full.json""]",0,1.0
+baseline.robust_0.8B.with_manual,1.0,Baseline 0.8B — with manual,True,3000,0,0.0,True,0,3000,"[""baseline_withmanual_results_full.json""]",0,1.0
+baseline.robust_2B.no_manual,1.0,Baseline 2B — no manual,True,3000,0,0.0,True,0,3000,"[""baseline_nomanual_results_rejudge2B_full.json""]",0,1.0
+baseline.robust_2B.with_manual,1.0,Baseline 2B — with manual,True,3000,0,0.0,True,0,3000,"[""baseline_withmanual_results_rejudge2B_full.json""]",0,1.0
+baseline.robust_4B.no_manual,1.0,Baseline 4B — no manual,True,3000,1102,0.36733333333333335,True,0,3000,"[""baseline_nomanual_results_rejudge4B_full.json""]",0,1.0
+baseline.robust_4B.with_manual,1.0,Baseline 4B — with manual,True,3000,2361,0.787,True,0,3000,"[""baseline_withmanual_results_rejudge4B_full.json""]",0,1.0
+interactive.legacy_0.8B.ABA,0.407,Interactive ABA — legacy,False,3000,0,,False,1779,1221,"[""interactive_results_merged.json""]",991,0.18837018837018837
+interactive.rejudge_2B.ABA,1.0,Interactive ABA — rejudged by 2B,True,3000,0,0.0,True,0,3000,"[""interactive_results_full_rejudge2B.json""]",0,1.0
+interactive.rejudge_2B.BAB,1.0,Interactive BAB — rejudged by 2B,True,3000,0,0.0,True,0,3000,"[""interactive_results_full_rejudge2B.json""]",0,1.0
+interactive.robust_0.8B.ABA,1.0,Interactive ABA — 0.8B judge,True,3000,2208,0.736,True,0,3000,"[""interactive_results_full.json""]",0,1.0
+interactive.robust_0.8B.BAB,1.0,Interactive BAB — 0.8B judge,True,3000,1966,0.6553333333333333,True,0,3000,"[""interactive_results_full.json""]",0,1.0
+interactive.robust_0.8B.BAB_swapped_labels,1.0,Interactive BAB — displayed labels swapped,True,3000,1990,0.6633333333333333,True,0,3000,"[""interactive_results_BAB_swapped_labels_full.json""]",0,1.0
+statement.legacy_0.8B,0.49,Statement — legacy,False,3000,0,,False,1530,1470,"[""statement_results_merged.json""]",1224,0.1673469387755102
+statement.older_pydantic_0.8B,1.0,Statement — older Pydantic,True,3000,0,,True,0,3000,"[""pydantic_statement_results_full.json""]",129,0.957
+statement.rejudge_2B,1.0,Statement — rejudged by 2B,True,3000,0,0.0,True,0,3000,"[""statement_results_full_rejudge2B.json""]",0,1.0
+statement.robust_0.8B,1.0,Statement — 0.8B judge,True,3000,896,0.2986666666666667,True,0,3000,"[""statement_results_full.json""]",0,1.0

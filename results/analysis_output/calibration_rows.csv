@@ -1,0 +1,331 @@
+condition_id,argmax_accuracy,bin,confidence_calibration_gap,count,display_name,framing,lower_probability_inclusive,mean_argmax_confidence,mean_probability_yes,observed_yes_rate,probability_calibration_gap,probability_field,upper_probability_exclusive,upper_probability_inclusive,weight
+baseline.robust_0.8B.no_manual,,1,,0,Baseline 0.8B — no manual,yes_no,0.0,,,,,verdict_prob_belongs,0.1,,0.0
+baseline.robust_0.8B.no_manual,,2,,0,Baseline 0.8B — no manual,yes_no,0.1,,,,,verdict_prob_belongs,0.2,,0.0
+baseline.robust_0.8B.no_manual,,3,,0,Baseline 0.8B — no manual,yes_no,0.2,,,,,verdict_prob_belongs,0.3,,0.0
+baseline.robust_0.8B.no_manual,,4,,0,Baseline 0.8B — no manual,yes_no,0.3,,,,,verdict_prob_belongs,0.4,,0.0
+baseline.robust_0.8B.no_manual,,5,,0,Baseline 0.8B — no manual,yes_no,0.4,,,,,verdict_prob_belongs,0.5,,0.0
+baseline.robust_0.8B.no_manual,,6,,0,Baseline 0.8B — no manual,yes_no,0.5,,,,,verdict_prob_belongs,0.6,,0.0
+baseline.robust_0.8B.no_manual,,7,,0,Baseline 0.8B — no manual,yes_no,0.6,,,,,verdict_prob_belongs,0.7,,0.0
+baseline.robust_0.8B.no_manual,,8,,0,Baseline 0.8B — no manual,yes_no,0.7,,,,,verdict_prob_belongs,0.8,,0.0
+baseline.robust_0.8B.no_manual,0.0,9,0.8818260606031573,38,Baseline 0.8B — no manual,yes_no,0.8,0.8818260606031573,0.8818260606031573,0.0,0.8818260606031573,verdict_prob_belongs,0.9,,0.012666666666666666
+baseline.robust_0.8B.no_manual,0.337609723160027,10,0.6202267570063157,2962,Baseline 0.8B — no manual,yes_no,0.9,0.9578364801663427,0.9578364801663427,0.337609723160027,0.6202267570063157,verdict_prob_belongs,,1.0,0.9873333333333333
+baseline.robust_0.8B.no_manual,,1,,0,Baseline 0.8B — no manual,true_false,0.0,,,,,boolean_prob_true,0.1,,0.0
+baseline.robust_0.8B.no_manual,,2,,0,Baseline 0.8B — no manual,true_false,0.1,,,,,boolean_prob_true,0.2,,0.0
+baseline.robust_0.8B.no_manual,,3,,0,Baseline 0.8B — no manual,true_false,0.2,,,,,boolean_prob_true,0.3,,0.0
+baseline.robust_0.8B.no_manual,1.0,4,0.388618026705849,1,Baseline 0.8B — no manual,true_false,0.3,0.611381973294151,0.38861802670584894,0.0,0.38861802670584894,boolean_prob_true,0.4,,0.0003333333333333333
+baseline.robust_0.8B.no_manual,0.9662921348314607,5,0.43865144521943955,89,Baseline 0.8B — no manual,true_false,0.4,0.5276406896120212,0.4723593103879789,0.033707865168539325,0.43865144521943955,boolean_prob_true,0.5,,0.029666666666666668
+baseline.robust_0.8B.no_manual,0.13959085439229843,6,0.4213538540160523,831,Baseline 0.8B — no manual,true_false,0.5,0.5609447084083508,0.5609447084083508,0.13959085439229843,0.4213538540160523,boolean_prob_true,0.6,,0.277
+baseline.robust_0.8B.no_manual,0.37849079025549615,7,0.2687312947123002,1683,Baseline 0.8B — no manual,true_false,0.6,0.6472220849677963,0.6472220849677963,0.37849079025549615,0.2687312947123002,boolean_prob_true,0.7,,0.561
+baseline.robust_0.8B.no_manual,0.6132315521628499,8,0.11400743066807284,393,Baseline 0.8B — no manual,true_false,0.7,0.7272389828309227,0.7272389828309227,0.6132315521628499,0.11400743066807284,boolean_prob_true,0.8,,0.131
+baseline.robust_0.8B.no_manual,1.0,9,0.19601453998051166,3,Baseline 0.8B — no manual,true_false,0.8,0.8039854600194883,0.8039854600194883,1.0,0.19601453998051166,boolean_prob_true,0.9,,0.001
+baseline.robust_0.8B.no_manual,,10,,0,Baseline 0.8B — no manual,true_false,0.9,,,,,boolean_prob_true,,1.0,0.0
+baseline.robust_0.8B.with_manual,,1,,0,Baseline 0.8B — with manual,yes_no,0.0,,,,,verdict_prob_belongs,0.1,,0.0
+baseline.robust_0.8B.with_manual,,2,,0,Baseline 0.8B — with manual,yes_no,0.1,,,,,verdict_prob_belongs,0.2,,0.0
+baseline.robust_0.8B.with_manual,,3,,0,Baseline 0.8B — with manual,yes_no,0.2,,,,,verdict_prob_belongs,0.3,,0.0
+baseline.robust_0.8B.with_manual,,4,,0,Baseline 0.8B — with manual,yes_no,0.3,,,,,verdict_prob_belongs,0.4,,0.0
+baseline.robust_0.8B.with_manual,,5,,0,Baseline 0.8B — with manual,yes_no,0.4,,,,,verdict_prob_belongs,0.5,,0.0
+baseline.robust_0.8B.with_manual,,6,,0,Baseline 0.8B — with manual,yes_no,0.5,,,,,verdict_prob_belongs,0.6,,0.0
+baseline.robust_0.8B.with_manual,,7,,0,Baseline 0.8B — with manual,yes_no,0.6,,,,,verdict_prob_belongs,0.7,,0.0
+baseline.robust_0.8B.with_manual,,8,,0,Baseline 0.8B — with manual,yes_no,0.7,,,,,verdict_prob_belongs,0.8,,0.0
+baseline.robust_0.8B.with_manual,0.0,9,0.8962513731336202,1,Baseline 0.8B — with manual,yes_no,0.8,0.8962513731336202,0.8962513731336202,0.0,0.8962513731336202,verdict_prob_belongs,0.9,,0.0003333333333333333
+baseline.robust_0.8B.with_manual,0.33344448149383127,10,0.6340863109463954,2999,Baseline 0.8B — with manual,yes_no,0.9,0.9675307924402268,0.9675307924402268,0.33344448149383127,0.6340863109463954,verdict_prob_belongs,,1.0,0.9996666666666667
+baseline.robust_0.8B.with_manual,,1,,0,Baseline 0.8B — with manual,true_false,0.0,,,,,boolean_prob_true,0.1,,0.0
+baseline.robust_0.8B.with_manual,,2,,0,Baseline 0.8B — with manual,true_false,0.1,,,,,boolean_prob_true,0.2,,0.0
+baseline.robust_0.8B.with_manual,1.0,3,0.2689414213699951,1,Baseline 0.8B — with manual,true_false,0.2,0.7310585786300049,0.2689414213699951,0.0,0.2689414213699951,boolean_prob_true,0.3,,0.0003333333333333333
+baseline.robust_0.8B.with_manual,0.984375,4,0.368225525764754,128,Baseline 0.8B — with manual,true_false,0.3,0.616149474235246,0.383850525764754,0.015625,0.368225525764754,boolean_prob_true,0.4,,0.042666666666666665
+baseline.robust_0.8B.with_manual,0.7288790723357261,5,0.18786539115845713,1811,Baseline 0.8B — with manual,true_false,0.4,0.541013681177269,0.45898631882273105,0.27112092766427387,0.18786539115845718,boolean_prob_true,0.5,,0.6036666666666667
+baseline.robust_0.8B.with_manual,0.4761450381679389,6,0.04982338857251006,1048,Baseline 0.8B — with manual,true_false,0.5,0.525968426740449,0.525968426740449,0.4761450381679389,0.04982338857251006,boolean_prob_true,0.6,,0.34933333333333333
+baseline.robust_0.8B.with_manual,0.6666666666666666,7,0.059047963064071896,12,Baseline 0.8B — with manual,true_false,0.6,0.6076187036025947,0.6076187036025947,0.6666666666666666,0.059047963064071896,boolean_prob_true,0.7,,0.004
+baseline.robust_0.8B.with_manual,,8,,0,Baseline 0.8B — with manual,true_false,0.7,,,,,boolean_prob_true,0.8,,0.0
+baseline.robust_0.8B.with_manual,,9,,0,Baseline 0.8B — with manual,true_false,0.8,,,,,boolean_prob_true,0.9,,0.0
+baseline.robust_0.8B.with_manual,,10,,0,Baseline 0.8B — with manual,true_false,0.9,,,,,boolean_prob_true,,1.0,0.0
+baseline.robust_2B.no_manual,0.9056603773584906,1,0.0470809956009427,1802,Baseline 2B — no manual,yes_no,0.0,0.9527413729594333,0.047258627040566735,0.09433962264150944,0.047080995600942706,verdict_prob_belongs,0.1,,0.6006666666666667
+baseline.robust_2B.no_manual,0.4753199268738574,2,0.38005735011727704,547,Baseline 2B — no manual,yes_no,0.1,0.8553772769911344,0.14462272300886556,0.5246800731261426,0.38005735011727704,verdict_prob_belongs,0.2,,0.18233333333333332
+baseline.robust_2B.no_manual,0.2346368715083799,3,0.5210127924293108,358,Baseline 2B — no manual,yes_no,0.2,0.7556496639376906,0.24435033606230938,0.7653631284916201,0.5210127924293108,verdict_prob_belongs,0.3,,0.11933333333333333
+baseline.robust_2B.no_manual,0.10215053763440861,4,0.550552295605027,186,Baseline 2B — no manual,yes_no,0.3,0.6527028332394357,0.3472971667605644,0.8978494623655914,0.550552295605027,verdict_prob_belongs,0.4,,0.062
+baseline.robust_2B.no_manual,0.036585365853658534,5,0.5218700669923154,82,Baseline 2B — no manual,yes_no,0.4,0.558455432845974,0.44154456715402596,0.9634146341463414,0.5218700669923155,verdict_prob_belongs,0.5,,0.027333333333333334
+baseline.robust_2B.no_manual,0.9,6,0.3675154910241466,20,Baseline 2B — no manual,yes_no,0.5,0.5324845089758534,0.5324845089758534,0.9,0.3675154910241466,verdict_prob_belongs,0.6,,0.006666666666666667
+baseline.robust_2B.no_manual,1.0,7,0.3755161403449988,5,Baseline 2B — no manual,yes_no,0.6,0.6244838596550012,0.6244838596550012,1.0,0.3755161403449988,verdict_prob_belongs,0.7,,0.0016666666666666668
+baseline.robust_2B.no_manual,,8,,0,Baseline 2B — no manual,yes_no,0.7,,,,,verdict_prob_belongs,0.8,,0.0
+baseline.robust_2B.no_manual,,9,,0,Baseline 2B — no manual,yes_no,0.8,,,,,verdict_prob_belongs,0.9,,0.0
+baseline.robust_2B.no_manual,,10,,0,Baseline 2B — no manual,yes_no,0.9,,,,,verdict_prob_belongs,,1.0,0.0
+baseline.robust_2B.no_manual,,1,,0,Baseline 2B — no manual,true_false,0.0,,,,,boolean_prob_true,0.1,,0.0
+baseline.robust_2B.no_manual,0.9523809523809523,2,0.12465953683692088,21,Baseline 2B — no manual,true_false,0.1,0.8277214155440314,0.17227858445596858,0.047619047619047616,0.12465953683692096,boolean_prob_true,0.2,,0.007
+baseline.robust_2B.no_manual,0.9611650485436893,3,0.22231642647558836,103,Baseline 2B — no manual,true_false,0.2,0.738848622068101,0.261151377931899,0.038834951456310676,0.22231642647558836,boolean_prob_true,0.3,,0.034333333333333334
+baseline.robust_2B.no_manual,0.8868778280542986,4,0.24367988679990937,221,Baseline 2B — no manual,true_false,0.3,0.6431979412543892,0.3568020587456109,0.11312217194570136,0.24367988679990954,boolean_prob_true,0.4,,0.07366666666666667
+baseline.robust_2B.no_manual,0.8532338308457711,5,0.30665186098642927,402,Baseline 2B — no manual,true_false,0.4,0.5465819698593418,0.45341803014065807,0.14676616915422885,0.3066518609864292,boolean_prob_true,0.5,,0.134
+baseline.robust_2B.no_manual,0.22564102564102564,6,0.32258394148389014,585,Baseline 2B — no manual,true_false,0.5,0.5482249671249158,0.5482249671249158,0.22564102564102564,0.32258394148389014,boolean_prob_true,0.6,,0.195
+baseline.robust_2B.no_manual,0.32125984251968503,7,0.3294150307719797,635,Baseline 2B — no manual,true_false,0.6,0.6506748732916647,0.6506748732916647,0.32125984251968503,0.3294150307719797,boolean_prob_true,0.7,,0.21166666666666667
+baseline.robust_2B.no_manual,0.48661417322834644,8,0.26145971121813505,635,Baseline 2B — no manual,true_false,0.7,0.7480738844464815,0.7480738844464815,0.48661417322834644,0.26145971121813505,boolean_prob_true,0.8,,0.21166666666666667
+baseline.robust_2B.no_manual,0.6576576576576577,9,0.18612547483588382,333,Baseline 2B — no manual,true_false,0.8,0.8437831324935415,0.8437831324935415,0.6576576576576577,0.18612547483588382,boolean_prob_true,0.9,,0.111
+baseline.robust_2B.no_manual,0.7230769230769231,10,0.20131804972298684,65,Baseline 2B — no manual,true_false,0.9,0.9243949727999099,0.9243949727999099,0.7230769230769231,0.20131804972298684,boolean_prob_true,,1.0,0.021666666666666667
+baseline.robust_2B.with_manual,0.9435665914221218,1,0.015504180451085592,886,Baseline 2B — with manual,yes_no,0.0,0.9280624109710363,0.07193758902896376,0.056433408577878104,0.015504180451085654,verdict_prob_belongs,0.1,,0.29533333333333334
+baseline.robust_2B.with_manual,0.7379032258064516,2,0.11889893735976487,1240,Baseline 2B — with manual,yes_no,0.1,0.8568021631662165,0.14319783683378343,0.2620967741935484,0.11889893735976495,verdict_prob_belongs,0.2,,0.41333333333333333
+baseline.robust_2B.with_manual,0.3364341085271318,3,0.42196881361703703,645,Baseline 2B — with manual,yes_no,0.2,0.7584029221441688,0.24159707785583112,0.6635658914728683,0.42196881361703714,verdict_prob_belongs,0.3,,0.215
+baseline.robust_2B.with_manual,0.1641025641025641,4,0.49927269566091603,195,Baseline 2B — with manual,yes_no,0.3,0.6633752597634801,0.33662474023652,0.8358974358974359,0.4992726956609159,verdict_prob_belongs,0.4,,0.065
+baseline.robust_2B.with_manual,0.0,5,0.5629980569997171,29,Baseline 2B — with manual,yes_no,0.4,0.5629980569997171,0.43700194300028294,1.0,0.5629980569997171,verdict_prob_belongs,0.5,,0.009666666666666667
+baseline.robust_2B.with_manual,1.0,6,0.4795222466596557,5,Baseline 2B — with manual,yes_no,0.5,0.5204777533403443,0.5204777533403443,1.0,0.4795222466596557,verdict_prob_belongs,0.6,,0.0016666666666666668
+baseline.robust_2B.with_manual,,7,,0,Baseline 2B — with manual,yes_no,0.6,,,,,verdict_prob_belongs,0.7,,0.0
+baseline.robust_2B.with_manual,,8,,0,Baseline 2B — with manual,yes_no,0.7,,,,,verdict_prob_belongs,0.8,,0.0
+baseline.robust_2B.with_manual,,9,,0,Baseline 2B — with manual,yes_no,0.8,,,,,verdict_prob_belongs,0.9,,0.0
+baseline.robust_2B.with_manual,,10,,0,Baseline 2B — with manual,yes_no,0.9,,,,,verdict_prob_belongs,,1.0,0.0
+baseline.robust_2B.with_manual,,1,,0,Baseline 2B — with manual,true_false,0.0,,,,,boolean_prob_true,0.1,,0.0
+baseline.robust_2B.with_manual,,2,,0,Baseline 2B — with manual,true_false,0.1,,,,,boolean_prob_true,0.2,,0.0
+baseline.robust_2B.with_manual,,3,,0,Baseline 2B — with manual,true_false,0.2,,,,,boolean_prob_true,0.3,,0.0
+baseline.robust_2B.with_manual,,4,,0,Baseline 2B — with manual,true_false,0.3,,,,,boolean_prob_true,0.4,,0.0
+baseline.robust_2B.with_manual,,5,,0,Baseline 2B — with manual,true_false,0.4,,,,,boolean_prob_true,0.5,,0.0
+baseline.robust_2B.with_manual,0.0,6,0.5583269943353745,1,Baseline 2B — with manual,true_false,0.5,0.5583269943353745,0.5583269943353745,0.0,0.5583269943353745,boolean_prob_true,0.6,,0.0003333333333333333
+baseline.robust_2B.with_manual,0.0,7,0.6637428233485143,22,Baseline 2B — with manual,true_false,0.6,0.6637428233485143,0.6637428233485143,0.0,0.6637428233485143,boolean_prob_true,0.7,,0.007333333333333333
+baseline.robust_2B.with_manual,0.10087719298245613,8,0.6685151240148679,228,Baseline 2B — with manual,true_false,0.7,0.769392316997324,0.769392316997324,0.10087719298245613,0.6685151240148679,boolean_prob_true,0.8,,0.076
+baseline.robust_2B.with_manual,0.266548463356974,9,0.5953360699068003,1692,Baseline 2B — with manual,true_false,0.8,0.8618845332637743,0.8618845332637743,0.266548463356974,0.5953360699068003,boolean_prob_true,0.9,,0.564
+baseline.robust_2B.with_manual,0.49763481551561023,10,0.42560323669561767,1057,Baseline 2B — with manual,true_false,0.9,0.9232380522112279,0.9232380522112279,0.49763481551561023,0.42560323669561767,boolean_prob_true,,1.0,0.35233333333333333
+baseline.robust_4B.no_manual,,1,,0,Baseline 4B — no manual,yes_no,0.0,,,,,verdict_prob_belongs,0.1,,0.0
+baseline.robust_4B.no_manual,,2,,0,Baseline 4B — no manual,yes_no,0.1,,,,,verdict_prob_belongs,0.2,,0.0
+baseline.robust_4B.no_manual,,3,,0,Baseline 4B — no manual,yes_no,0.2,,,,,verdict_prob_belongs,0.3,,0.0
+baseline.robust_4B.no_manual,,4,,0,Baseline 4B — no manual,yes_no,0.3,,,,,verdict_prob_belongs,0.4,,0.0
+baseline.robust_4B.no_manual,,5,,0,Baseline 4B — no manual,yes_no,0.4,,,,,verdict_prob_belongs,0.5,,0.0
+baseline.robust_4B.no_manual,,6,,0,Baseline 4B — no manual,yes_no,0.5,,,,,verdict_prob_belongs,0.6,,0.0
+baseline.robust_4B.no_manual,,7,,0,Baseline 4B — no manual,yes_no,0.6,,,,,verdict_prob_belongs,0.7,,0.0
+baseline.robust_4B.no_manual,0.0,8,0.7825147795451342,2,Baseline 4B — no manual,yes_no,0.7,0.7825147795451342,0.7825147795451342,0.0,0.7825147795451342,verdict_prob_belongs,0.8,,0.0006666666666666666
+baseline.robust_4B.no_manual,0.06889352818371608,9,0.8111037080905392,479,Baseline 4B — no manual,yes_no,0.8,0.8799972362742553,0.8799972362742553,0.06889352818371608,0.8111037080905392,verdict_prob_belongs,0.9,,0.15966666666666668
+baseline.robust_4B.no_manual,0.38388249305279876,10,0.5546140100673927,2519,Baseline 4B — no manual,yes_no,0.9,0.9384965031201915,0.9384965031201915,0.38388249305279876,0.5546140100673927,verdict_prob_belongs,,1.0,0.8396666666666667
+baseline.robust_4B.no_manual,,1,,0,Baseline 4B — no manual,true_false,0.0,,,,,boolean_prob_true,0.1,,0.0
+baseline.robust_4B.no_manual,,2,,0,Baseline 4B — no manual,true_false,0.1,,,,,boolean_prob_true,0.2,,0.0
+baseline.robust_4B.no_manual,,3,,0,Baseline 4B — no manual,true_false,0.2,,,,,boolean_prob_true,0.3,,0.0
+baseline.robust_4B.no_manual,1.0,4,0.3728853831378225,16,Baseline 4B — no manual,true_false,0.3,0.6271146168621775,0.37288538313782255,0.0,0.37288538313782255,boolean_prob_true,0.4,,0.005333333333333333
+baseline.robust_4B.no_manual,0.9056603773584906,5,0.3688474939236208,212,Baseline 4B — no manual,true_false,0.4,0.5368128834348698,0.4631871165651302,0.09433962264150944,0.3688474939236207,boolean_prob_true,0.5,,0.07066666666666667
+baseline.robust_4B.no_manual,0.20609756097560974,6,0.3497932430281201,820,Baseline 4B — no manual,true_false,0.5,0.5558908040037298,0.5558908040037298,0.20609756097560974,0.3497932430281201,boolean_prob_true,0.6,,0.2733333333333333
+baseline.robust_4B.no_manual,0.3640816326530612,7,0.28585036024475224,1225,Baseline 4B — no manual,true_false,0.6,0.6499319928978134,0.6499319928978134,0.3640816326530612,0.28585036024475224,boolean_prob_true,0.7,,0.4083333333333333
+baseline.robust_4B.no_manual,0.5,8,0.23881382373757898,642,Baseline 4B — no manual,true_false,0.7,0.738813823737579,0.738813823737579,0.5,0.23881382373757898,boolean_prob_true,0.8,,0.214
+baseline.robust_4B.no_manual,0.5176470588235295,9,0.3101043696855438,85,Baseline 4B — no manual,true_false,0.8,0.8277514285090732,0.8277514285090732,0.5176470588235295,0.3101043696855438,boolean_prob_true,0.9,,0.028333333333333332
+baseline.robust_4B.no_manual,,10,,0,Baseline 4B — no manual,true_false,0.9,,,,,boolean_prob_true,,1.0,0.0
+baseline.robust_4B.with_manual,,1,,0,Baseline 4B — with manual,yes_no,0.0,,,,,verdict_prob_belongs,0.1,,0.0
+baseline.robust_4B.with_manual,,2,,0,Baseline 4B — with manual,yes_no,0.1,,,,,verdict_prob_belongs,0.2,,0.0
+baseline.robust_4B.with_manual,,3,,0,Baseline 4B — with manual,yes_no,0.2,,,,,verdict_prob_belongs,0.3,,0.0
+baseline.robust_4B.with_manual,1.0,4,0.37272046434704165,4,Baseline 4B — with manual,yes_no,0.3,0.6272795356529584,0.37272046434704165,0.0,0.37272046434704165,verdict_prob_belongs,0.4,,0.0013333333333333333
+baseline.robust_4B.with_manual,0.9722222222222222,5,0.4390142429518079,72,Baseline 4B — with manual,yes_no,0.4,0.5332079792704143,0.4667920207295857,0.027777777777777776,0.4390142429518079,verdict_prob_belongs,0.5,,0.024
+baseline.robust_4B.with_manual,0.046610169491525424,6,0.5134139661272621,472,Baseline 4B — with manual,yes_no,0.5,0.5600241356187875,0.5600241356187875,0.046610169491525424,0.5134139661272621,verdict_prob_belongs,0.6,,0.15733333333333333
+baseline.robust_4B.with_manual,0.13142857142857142,7,0.5204757662300717,1050,Baseline 4B — with manual,yes_no,0.6,0.6519043376586432,0.6519043376586432,0.13142857142857142,0.5204757662300717,verdict_prob_belongs,0.7,,0.35
+baseline.robust_4B.with_manual,0.4857444561774023,8,0.26119346777717595,947,Baseline 4B — with manual,yes_no,0.7,0.7469379239545783,0.7469379239545783,0.4857444561774023,0.26119346777717595,verdict_prob_belongs,0.8,,0.31566666666666665
+baseline.robust_4B.with_manual,0.8288888888888889,9,0.008202977062128247,450,Baseline 4B — with manual,yes_no,0.8,0.8370918659510171,0.8370918659510171,0.8288888888888889,0.008202977062128247,verdict_prob_belongs,0.9,,0.15
+baseline.robust_4B.with_manual,1.0,10,0.08354802667754524,5,Baseline 4B — with manual,yes_no,0.9,0.9164519733224548,0.9164519733224548,1.0,0.08354802667754524,verdict_prob_belongs,,1.0,0.0016666666666666668
+baseline.robust_4B.with_manual,,1,,0,Baseline 4B — with manual,true_false,0.0,,,,,boolean_prob_true,0.1,,0.0
+baseline.robust_4B.with_manual,1.0,2,0.1910567786979117,12,Baseline 4B — with manual,true_false,0.1,0.8089432213020883,0.1910567786979118,0.0,0.1910567786979118,boolean_prob_true,0.2,,0.004
+baseline.robust_4B.with_manual,0.8502495840266223,3,0.11958201748121644,601,Baseline 4B — with manual,true_false,0.2,0.7306675665454059,0.269332433454594,0.1497504159733777,0.1195820174812163,boolean_prob_true,0.3,,0.20033333333333334
+baseline.robust_4B.with_manual,0.6792452830188679,4,0.02846655109885987,1643,Baseline 4B — with manual,true_false,0.3,0.650778731920008,0.34922126807999193,0.32075471698113206,0.02846655109885987,boolean_prob_true,0.4,,0.5476666666666666
+baseline.robust_4B.with_manual,0.4874446085672083,5,0.07708388595722138,677,Baseline 4B — with manual,true_false,0.4,0.5645284945244297,0.4354715054755704,0.5125553914327917,0.07708388595722132,boolean_prob_true,0.5,,0.22566666666666665
+baseline.robust_4B.with_manual,0.515625,6,0.016557497989575287,64,Baseline 4B — with manual,true_false,0.5,0.5321824979895753,0.5321824979895753,0.515625,0.016557497989575287,boolean_prob_true,0.6,,0.021333333333333333
+baseline.robust_4B.with_manual,1.0,7,0.3945181366650965,3,Baseline 4B — with manual,true_false,0.6,0.6054818633349035,0.6054818633349035,1.0,0.3945181366650965,boolean_prob_true,0.7,,0.001
+baseline.robust_4B.with_manual,,8,,0,Baseline 4B — with manual,true_false,0.7,,,,,boolean_prob_true,0.8,,0.0
+baseline.robust_4B.with_manual,,9,,0,Baseline 4B — with manual,true_false,0.8,,,,,boolean_prob_true,0.9,,0.0
+baseline.robust_4B.with_manual,,10,,0,Baseline 4B — with manual,true_false,0.9,,,,,boolean_prob_true,,1.0,0.0
+interactive.rejudge_2B.ABA,0.9532208588957055,1,0.01318247734967859,1304,Interactive ABA — rejudged by 2B,yes_no,0.0,0.9400383815460269,0.059961618453973055,0.04677914110429448,0.013182477349678576,verdict_prob_belongs,0.1,,0.43466666666666665
+interactive.rejudge_2B.ABA,0.6911942098914354,2,0.16591229846793754,829,Interactive ABA — rejudged by 2B,yes_no,0.1,0.857106508359373,0.14289349164062704,0.3088057901085645,0.16591229846793748,verdict_prob_belongs,0.2,,0.2763333333333333
+interactive.rejudge_2B.ABA,0.2918454935622318,3,0.4633690727009083,466,Interactive ABA — rejudged by 2B,yes_no,0.2,0.7552145662631401,0.24478543373685985,0.7081545064377682,0.4633690727009084,verdict_prob_belongs,0.3,,0.15533333333333332
+interactive.rejudge_2B.ABA,0.14583333333333334,4,0.5105710940934022,240,Interactive ABA — rejudged by 2B,yes_no,0.3,0.6564044274267355,0.3435955725732645,0.8541666666666666,0.5105710940934021,verdict_prob_belongs,0.4,,0.08
+interactive.rejudge_2B.ABA,0.08771929824561403,5,0.470800414211015,114,Interactive ABA — rejudged by 2B,yes_no,0.4,0.558519712456629,0.441480287543371,0.9122807017543859,0.47080041421101493,verdict_prob_belongs,0.5,,0.038
+interactive.rejudge_2B.ABA,0.9318181818181818,6,0.396854359702728,44,Interactive ABA — rejudged by 2B,yes_no,0.5,0.5349638221154538,0.5349638221154538,0.9318181818181818,0.396854359702728,verdict_prob_belongs,0.6,,0.014666666666666666
+interactive.rejudge_2B.ABA,1.0,7,0.35645219355951097,3,Interactive ABA — rejudged by 2B,yes_no,0.6,0.643547806440489,0.643547806440489,1.0,0.35645219355951097,verdict_prob_belongs,0.7,,0.001
+interactive.rejudge_2B.ABA,,8,,0,Interactive ABA — rejudged by 2B,yes_no,0.7,,,,,verdict_prob_belongs,0.8,,0.0
+interactive.rejudge_2B.ABA,,9,,0,Interactive ABA — rejudged by 2B,yes_no,0.8,,,,,verdict_prob_belongs,0.9,,0.0
+interactive.rejudge_2B.ABA,,10,,0,Interactive ABA — rejudged by 2B,yes_no,0.9,,,,,verdict_prob_belongs,,1.0,0.0
+interactive.rejudge_2B.ABA,0.9652173913043478,1,0.046999795480565876,345,Interactive ABA — rejudged by 2B,true_false,0.0,0.9182175958237819,0.08178240417621799,0.034782608695652174,0.04699979548056581,boolean_prob_true,0.1,,0.115
+interactive.rejudge_2B.ABA,0.8635743519781719,2,0.010179097470079834,1466,Interactive ABA — rejudged by 2B,true_false,0.1,0.8533952545080921,0.14660474549190794,0.1364256480218281,0.010179097470079834,boolean_prob_true,0.2,,0.4886666666666667
+interactive.rejudge_2B.ABA,0.45738636363636365,3,0.3026721391680899,704,Interactive ABA — rejudged by 2B,true_false,0.2,0.7600585028044535,0.2399414971955464,0.5426136363636364,0.30267213916809,boolean_prob_true,0.3,,0.23466666666666666
+interactive.rejudge_2B.ABA,0.2073170731707317,4,0.4523587134464001,328,Interactive ABA — rejudged by 2B,true_false,0.3,0.6596757866171318,0.34032421338286817,0.7926829268292683,0.45235871344640016,boolean_prob_true,0.4,,0.10933333333333334
+interactive.rejudge_2B.ABA,0.0703125,5,0.48889000802616434,128,Interactive ABA — rejudged by 2B,true_false,0.4,0.5592025080261643,0.4407974919738356,0.9296875,0.4888900080261644,boolean_prob_true,0.5,,0.042666666666666665
+interactive.rejudge_2B.ABA,0.9230769230769231,6,0.39380700397629786,26,Interactive ABA — rejudged by 2B,true_false,0.5,0.5292699191006253,0.5292699191006253,0.9230769230769231,0.39380700397629786,boolean_prob_true,0.6,,0.008666666666666666
+interactive.rejudge_2B.ABA,1.0,7,0.3752174641596281,3,Interactive ABA — rejudged by 2B,true_false,0.6,0.6247825358403719,0.6247825358403719,1.0,0.3752174641596281,boolean_prob_true,0.7,,0.001
+interactive.rejudge_2B.ABA,,8,,0,Interactive ABA — rejudged by 2B,true_false,0.7,,,,,boolean_prob_true,0.8,,0.0
+interactive.rejudge_2B.ABA,,9,,0,Interactive ABA — rejudged by 2B,true_false,0.8,,,,,boolean_prob_true,0.9,,0.0
+interactive.rejudge_2B.ABA,,10,,0,Interactive ABA — rejudged by 2B,true_false,0.9,,,,,boolean_prob_true,,1.0,0.0
+interactive.rejudge_2B.ABA,0.6923076923076923,1,0.21561997123944276,13,Interactive ABA — rejudged by 2B,debater_ab_converted,0.0,0.907927663547135,0.09207233645286493,0.3076923076923077,0.21561997123944276,debater_prob_yes,0.1,,0.004333333333333333
+interactive.rejudge_2B.ABA,0.6962025316455697,2,0.13944103725532053,632,Interactive ABA — rejudged by 2B,debater_ab_converted,0.1,0.8356435689008902,0.16435643109910986,0.3037974683544304,0.13944103725532053,debater_prob_yes,0.2,,0.21066666666666667
+interactive.rejudge_2B.ABA,0.6520376175548589,3,0.10748697440453148,638,Interactive ABA — rejudged by 2B,debater_ab_converted,0.2,0.7595245919593904,0.24047540804060957,0.34796238244514105,0.10748697440453148,debater_prob_yes,0.3,,0.21266666666666667
+interactive.rejudge_2B.ABA,0.5979899497487438,4,0.0654378555995272,199,Interactive ABA — rejudged by 2B,debater_ab_converted,0.3,0.663427805348271,0.3365721946517291,0.4020100502512563,0.0654378555995272,debater_prob_yes,0.4,,0.06633333333333333
+interactive.rejudge_2B.ABA,0.5111111111111111,5,0.045805729153706065,45,Interactive ABA — rejudged by 2B,debater_ab_converted,0.4,0.5569168402648171,0.44308315973518286,0.4888888888888889,0.04580572915370601,debater_prob_yes,0.5,,0.015
+interactive.rejudge_2B.ABA,0.4745762711864407,6,0.08270782069561572,59,Interactive ABA — rejudged by 2B,debater_ab_converted,0.5,0.5572840918820564,0.5572840918820564,0.4745762711864407,0.08270782069561572,debater_prob_yes,0.6,,0.019666666666666666
+interactive.rejudge_2B.ABA,0.3877551020408163,7,0.27360330596401383,196,Interactive ABA — rejudged by 2B,debater_ab_converted,0.6,0.6613584080048301,0.6613584080048301,0.3877551020408163,0.27360330596401383,debater_prob_yes,0.7,,0.06533333333333333
+interactive.rejudge_2B.ABA,0.3218562874251497,8,0.4348031508181015,668,Interactive ABA — rejudged by 2B,debater_ab_converted,0.7,0.7566594382432512,0.7566594382432512,0.3218562874251497,0.4348031508181015,debater_prob_yes,0.8,,0.22266666666666668
+interactive.rejudge_2B.ABA,0.29259259259259257,9,0.5446798413203129,540,Interactive ABA — rejudged by 2B,debater_ab_converted,0.8,0.8372724339129054,0.8372724339129054,0.29259259259259257,0.5446798413203129,debater_prob_yes,0.9,,0.18
+interactive.rejudge_2B.ABA,0.3,10,0.6042714079710756,10,Interactive ABA — rejudged by 2B,debater_ab_converted,0.9,0.9042714079710755,0.9042714079710755,0.3,0.6042714079710756,debater_prob_yes,,1.0,0.0033333333333333335
+interactive.rejudge_2B.BAB,0.9523316062176166,1,0.01718879563092801,965,Interactive BAB — rejudged by 2B,yes_no,0.0,0.9351428105866886,0.0648571894133114,0.04766839378238342,0.017188795630927976,verdict_prob_belongs,0.1,,0.32166666666666666
+interactive.rejudge_2B.BAB,0.7705817782656421,2,0.0855104018878885,911,Interactive BAB — rejudged by 2B,yes_no,0.1,0.8560921801535306,0.14390781984646928,0.22941822173435786,0.08551040188788858,verdict_prob_belongs,0.2,,0.30366666666666664
+interactive.rejudge_2B.BAB,0.4408014571948998,3,0.31619660471080924,549,Interactive BAB — rejudged by 2B,yes_no,0.2,0.7569980619057091,0.24300193809429102,0.5591985428051002,0.3161966047108091,verdict_prob_belongs,0.3,,0.183
+interactive.rejudge_2B.BAB,0.27631578947368424,4,0.3801104806577455,380,Interactive BAB — rejudged by 2B,yes_no,0.3,0.6564262701314297,0.34357372986857027,0.7236842105263158,0.38011048065774555,verdict_prob_belongs,0.4,,0.12666666666666668
+interactive.rejudge_2B.BAB,0.17763157894736842,5,0.3819739366077846,152,Interactive BAB — rejudged by 2B,yes_no,0.4,0.559605515555153,0.44039448444484697,0.8223684210526315,0.38197393660778456,verdict_prob_belongs,0.5,,0.050666666666666665
+interactive.rejudge_2B.BAB,0.8857142857142857,6,0.3457211038755239,35,Interactive BAB — rejudged by 2B,yes_no,0.5,0.5399931818387618,0.5399931818387618,0.8857142857142857,0.3457211038755239,verdict_prob_belongs,0.6,,0.011666666666666667
+interactive.rejudge_2B.BAB,0.875,7,0.23558863837194866,8,Interactive BAB — rejudged by 2B,yes_no,0.6,0.6394113616280513,0.6394113616280513,0.875,0.23558863837194866,verdict_prob_belongs,0.7,,0.0026666666666666666
+interactive.rejudge_2B.BAB,,8,,0,Interactive BAB — rejudged by 2B,yes_no,0.7,,,,,verdict_prob_belongs,0.8,,0.0
+interactive.rejudge_2B.BAB,,9,,0,Interactive BAB — rejudged by 2B,yes_no,0.8,,,,,verdict_prob_belongs,0.9,,0.0
+interactive.rejudge_2B.BAB,,10,,0,Interactive BAB — rejudged by 2B,yes_no,0.9,,,,,verdict_prob_belongs,,1.0,0.0
+interactive.rejudge_2B.BAB,0.9181818181818182,1,0.0027263917060352805,110,Interactive BAB — rejudged by 2B,true_false,0.0,0.9154554264757829,0.08454457352421706,0.08181818181818182,0.002726391706035239,boolean_prob_true,0.1,,0.03666666666666667
+interactive.rejudge_2B.BAB,0.8640864086408641,2,0.018525059135889754,1111,Interactive BAB — rejudged by 2B,true_false,0.1,0.8455613495049743,0.15443865049502564,0.13591359135913592,0.018525059135889727,boolean_prob_true,0.2,,0.37033333333333335
+interactive.rejudge_2B.BAB,0.6637341153470185,3,0.09322458091522146,1023,Interactive BAB — rejudged by 2B,true_false,0.2,0.75695869626224,0.24304130373776003,0.3362658846529814,0.09322458091522137,boolean_prob_true,0.3,,0.341
+interactive.rejudge_2B.BAB,0.38939670932358317,4,0.26723906383890794,547,Interactive BAB — rejudged by 2B,true_false,0.3,0.6566357731624911,0.34336422683750895,0.6106032906764168,0.2672390638389079,boolean_prob_true,0.4,,0.18233333333333332
+interactive.rejudge_2B.BAB,0.22929936305732485,5,0.330070079055998,157,Interactive BAB — rejudged by 2B,true_false,0.4,0.5593694421133228,0.4406305578866772,0.7707006369426752,0.330070079055998,boolean_prob_true,0.5,,0.052333333333333336
+interactive.rejudge_2B.BAB,0.7777777777777778,6,0.2490858170184055,45,Interactive BAB — rejudged by 2B,true_false,0.5,0.5286919607593723,0.5286919607593723,0.7777777777777778,0.2490858170184055,boolean_prob_true,0.6,,0.015
+interactive.rejudge_2B.BAB,0.8571428571428571,7,0.22458578875272428,7,Interactive BAB — rejudged by 2B,true_false,0.6,0.6325570683901328,0.6325570683901328,0.8571428571428571,0.22458578875272428,boolean_prob_true,0.7,,0.0023333333333333335
+interactive.rejudge_2B.BAB,,8,,0,Interactive BAB — rejudged by 2B,true_false,0.7,,,,,boolean_prob_true,0.8,,0.0
+interactive.rejudge_2B.BAB,,9,,0,Interactive BAB — rejudged by 2B,true_false,0.8,,,,,boolean_prob_true,0.9,,0.0
+interactive.rejudge_2B.BAB,,10,,0,Interactive BAB — rejudged by 2B,true_false,0.9,,,,,boolean_prob_true,,1.0,0.0
+interactive.rejudge_2B.BAB,0.8461538461538461,1,0.06482819170919174,13,Interactive BAB — rejudged by 2B,debater_ab_converted,0.0,0.9109820378630379,0.08901796213696216,0.15384615384615385,0.0648281917091917,debater_prob_yes,0.1,,0.004333333333333333
+interactive.rejudge_2B.BAB,0.7158931082981715,2,0.1236194305207069,711,Interactive BAB — rejudged by 2B,debater_ab_converted,0.1,0.8395125388188784,0.16048746118112162,0.2841068917018284,0.12361943052070679,debater_prob_yes,0.2,,0.237
+interactive.rejudge_2B.BAB,0.623352165725047,3,0.1370177563582028,531,Interactive BAB — rejudged by 2B,debater_ab_converted,0.2,0.7603699220832498,0.2396300779167502,0.3766478342749529,0.1370177563582027,debater_prob_yes,0.3,,0.177
+interactive.rejudge_2B.BAB,0.5592105263157895,4,0.09928867103967343,152,Interactive BAB — rejudged by 2B,debater_ab_converted,0.3,0.6584991973554629,0.3415008026445372,0.4407894736842105,0.09928867103967332,debater_prob_yes,0.4,,0.050666666666666665
+interactive.rejudge_2B.BAB,0.6290322580645161,5,0.07663170134967345,62,Interactive BAB — rejudged by 2B,debater_ab_converted,0.4,0.5524005567148427,0.4475994432851574,0.3709677419354839,0.07663170134967351,debater_prob_yes,0.5,,0.020666666666666667
+interactive.rejudge_2B.BAB,0.4675324675324675,6,0.0812386594468873,77,Interactive BAB — rejudged by 2B,debater_ab_converted,0.5,0.5487711269793548,0.5487711269793548,0.4675324675324675,0.0812386594468873,debater_prob_yes,0.6,,0.025666666666666667
+interactive.rejudge_2B.BAB,0.3875,7,0.27444425658324484,160,Interactive BAB — rejudged by 2B,debater_ab_converted,0.6,0.6619442565832448,0.6619442565832448,0.3875,0.27444425658324484,debater_prob_yes,0.7,,0.05333333333333334
+interactive.rejudge_2B.BAB,0.3301282051282051,8,0.4307098772713283,624,Interactive BAB — rejudged by 2B,debater_ab_converted,0.7,0.7608380823995334,0.7608380823995334,0.3301282051282051,0.4307098772713283,debater_prob_yes,0.8,,0.208
+interactive.rejudge_2B.BAB,0.30257186081694404,9,0.535031609457282,661,Interactive BAB — rejudged by 2B,debater_ab_converted,0.8,0.837603470274226,0.837603470274226,0.30257186081694404,0.535031609457282,debater_prob_yes,0.9,,0.22033333333333333
+interactive.rejudge_2B.BAB,0.2222222222222222,10,0.6913918989913476,9,Interactive BAB — rejudged by 2B,debater_ab_converted,0.9,0.9136141212135698,0.9136141212135698,0.2222222222222222,0.6913918989913476,debater_prob_yes,,1.0,0.003
+interactive.robust_0.8B.ABA,,1,,0,Interactive ABA — 0.8B judge,yes_no,0.0,,,,,verdict_prob_belongs,0.1,,0.0
+interactive.robust_0.8B.ABA,,2,,0,Interactive ABA — 0.8B judge,yes_no,0.1,,,,,verdict_prob_belongs,0.2,,0.0
+interactive.robust_0.8B.ABA,0.8823529411764706,3,0.1489492333506206,34,Interactive ABA — 0.8B judge,yes_no,0.2,0.73340370782585,0.26659629217415004,0.11764705882352941,0.14894923335062063,verdict_prob_belongs,0.3,,0.011333333333333334
+interactive.robust_0.8B.ABA,0.8469387755102041,4,0.20937784985534236,196,Interactive ABA — 0.8B judge,yes_no,0.3,0.6375609256548618,0.36243907434513817,0.15306122448979592,0.20937784985534225,verdict_prob_belongs,0.4,,0.06533333333333333
+interactive.robust_0.8B.ABA,0.7651515151515151,5,0.21894337822702625,528,Interactive ABA — 0.8B judge,yes_no,0.4,0.5462081369244889,0.4537918630755111,0.23484848484848486,0.21894337822702625,verdict_prob_belongs,0.5,,0.176
+interactive.robust_0.8B.ABA,0.32713347921225383,6,0.22001315918753833,914,Interactive ABA — 0.8B judge,yes_no,0.5,0.5471466383997922,0.5471466383997922,0.32713347921225383,0.22001315918753833,verdict_prob_belongs,0.6,,0.30466666666666664
+interactive.robust_0.8B.ABA,0.38613861386138615,7,0.25961269885093174,909,Interactive ABA — 0.8B judge,yes_no,0.6,0.6457513127123179,0.6457513127123179,0.38613861386138615,0.25961269885093174,verdict_prob_belongs,0.7,,0.303
+interactive.robust_0.8B.ABA,0.46218487394957986,8,0.27853481435539795,357,Interactive ABA — 0.8B judge,yes_no,0.7,0.7407196883049778,0.7407196883049778,0.46218487394957986,0.27853481435539795,verdict_prob_belongs,0.8,,0.119
+interactive.robust_0.8B.ABA,0.4262295081967213,9,0.4018481341095453,61,Interactive ABA — 0.8B judge,yes_no,0.8,0.8280776423062666,0.8280776423062666,0.4262295081967213,0.4018481341095453,verdict_prob_belongs,0.9,,0.02033333333333333
+interactive.robust_0.8B.ABA,1.0,10,0.06954174450582806,1,Interactive ABA — 0.8B judge,yes_no,0.9,0.9304582554941719,0.9304582554941719,1.0,0.06954174450582806,verdict_prob_belongs,,1.0,0.0003333333333333333
+interactive.robust_0.8B.ABA,,1,,0,Interactive ABA — 0.8B judge,true_false,0.0,,,,,boolean_prob_true,0.1,,0.0
+interactive.robust_0.8B.ABA,,2,,0,Interactive ABA — 0.8B judge,true_false,0.1,,,,,boolean_prob_true,0.2,,0.0
+interactive.robust_0.8B.ABA,,3,,0,Interactive ABA — 0.8B judge,true_false,0.2,,,,,boolean_prob_true,0.3,,0.0
+interactive.robust_0.8B.ABA,0.8823529411764706,4,0.2504774500434608,17,Interactive ABA — 0.8B judge,true_false,0.3,0.6318754911330098,0.3681245088669903,0.11764705882352941,0.2504774500434609,boolean_prob_true,0.4,,0.005666666666666667
+interactive.robust_0.8B.ABA,0.7865853658536586,5,0.24953495469517029,164,Interactive ABA — 0.8B judge,true_false,0.4,0.5370504111584883,0.46294958884151177,0.21341463414634146,0.2495349546951703,boolean_prob_true,0.5,,0.05466666666666667
+interactive.robust_0.8B.ABA,0.26212471131639725,6,0.2940322659189567,866,Interactive ABA — 0.8B judge,true_false,0.5,0.556156977235354,0.556156977235354,0.26212471131639725,0.2940322659189567,boolean_prob_true,0.6,,0.2886666666666667
+interactive.robust_0.8B.ABA,0.3438880706921944,7,0.30559215501150916,1358,Interactive ABA — 0.8B judge,true_false,0.6,0.6494802257037036,0.6494802257037036,0.3438880706921944,0.30559215501150916,boolean_prob_true,0.7,,0.45266666666666666
+interactive.robust_0.8B.ABA,0.44876325088339225,8,0.2870236670299979,566,Interactive ABA — 0.8B judge,true_false,0.7,0.7357869179133901,0.7357869179133901,0.44876325088339225,0.2870236670299979,boolean_prob_true,0.8,,0.18866666666666668
+interactive.robust_0.8B.ABA,0.5172413793103449,9,0.30282971174734996,29,Interactive ABA — 0.8B judge,true_false,0.8,0.8200710910576948,0.8200710910576948,0.5172413793103449,0.30282971174734996,boolean_prob_true,0.9,,0.009666666666666667
+interactive.robust_0.8B.ABA,,10,,0,Interactive ABA — 0.8B judge,true_false,0.9,,,,,boolean_prob_true,,1.0,0.0
+interactive.robust_0.8B.ABA,0.740506329113924,1,0.1752632003066863,158,Interactive ABA — 0.8B judge,debater_ab_converted,0.0,0.9157695294206103,0.08423047057938973,0.25949367088607594,0.1752632003066862,debater_prob_yes,0.1,,0.05266666666666667
+interactive.robust_0.8B.ABA,0.6897404202719407,2,0.16000276218747356,809,Interactive ABA — 0.8B judge,debater_ab_converted,0.1,0.8497431824594143,0.15025681754058576,0.31025957972805934,0.16000276218747359,debater_prob_yes,0.2,,0.26966666666666667
+interactive.robust_0.8B.ABA,0.6015037593984962,3,0.15887811812851182,399,Interactive ABA — 0.8B judge,debater_ab_converted,0.2,0.760381877527008,0.23961812247299194,0.39849624060150374,0.1588781181285118,debater_prob_yes,0.3,,0.133
+interactive.robust_0.8B.ABA,0.543859649122807,4,0.1170333004474825,114,Interactive ABA — 0.8B judge,debater_ab_converted,0.3,0.6608929495702895,0.33910705042971045,0.45614035087719296,0.1170333004474825,debater_prob_yes,0.4,,0.038
+interactive.robust_0.8B.ABA,0.675,5,0.11792527612827142,40,Interactive ABA — 0.8B judge,debater_ab_converted,0.4,0.5570747238717286,0.4429252761282713,0.325,0.1179252761282713,debater_prob_yes,0.5,,0.013333333333333334
+interactive.robust_0.8B.ABA,0.5714285714285714,6,0.015875601685762186,28,Interactive ABA — 0.8B judge,debater_ab_converted,0.5,0.5555529697428092,0.5555529697428092,0.5714285714285714,0.015875601685762186,debater_prob_yes,0.6,,0.009333333333333334
+interactive.robust_0.8B.ABA,0.4772727272727273,7,0.18062211701961828,88,Interactive ABA — 0.8B judge,debater_ab_converted,0.6,0.6578948442923456,0.6578948442923456,0.4772727272727273,0.18062211701961828,debater_prob_yes,0.7,,0.029333333333333333
+interactive.robust_0.8B.ABA,0.43874643874643876,8,0.3200328798332514,351,Interactive ABA — 0.8B judge,debater_ab_converted,0.7,0.7587793185796902,0.7587793185796902,0.43874643874643876,0.3200328798332514,debater_prob_yes,0.8,,0.117
+interactive.robust_0.8B.ABA,0.28211284513805523,9,0.5689265977999379,833,Interactive ABA — 0.8B judge,debater_ab_converted,0.8,0.8510394429379932,0.8510394429379932,0.28211284513805523,0.5689265977999379,debater_prob_yes,0.9,,0.2776666666666667
+interactive.robust_0.8B.ABA,0.20555555555555555,10,0.7123484356600265,180,Interactive ABA — 0.8B judge,debater_ab_converted,0.9,0.917903991215582,0.917903991215582,0.20555555555555555,0.7123484356600265,debater_prob_yes,,1.0,0.06
+interactive.robust_0.8B.BAB,,1,,0,Interactive BAB — 0.8B judge,yes_no,0.0,,,,,verdict_prob_belongs,0.1,,0.0
+interactive.robust_0.8B.BAB,,2,,0,Interactive BAB — 0.8B judge,yes_no,0.1,,,,,verdict_prob_belongs,0.2,,0.0
+interactive.robust_0.8B.BAB,0.8235294117647058,3,0.09036636220362604,17,Interactive BAB — 0.8B judge,yes_no,0.2,0.7331630495610798,0.2668369504389202,0.17647058823529413,0.09036636220362607,verdict_prob_belongs,0.3,,0.005666666666666667
+interactive.robust_0.8B.BAB,0.7518796992481203,4,0.10990998878587088,133,Interactive BAB — 0.8B judge,yes_no,0.3,0.6419697104622494,0.3580302895377507,0.24812030075187969,0.109909988785871,verdict_prob_belongs,0.4,,0.044333333333333336
+interactive.robust_0.8B.BAB,0.7205882352941176,5,0.17784684458441324,408,Interactive BAB — 0.8B judge,yes_no,0.4,0.5427413907097044,0.45725860929029566,0.27941176470588236,0.1778468445844133,verdict_prob_belongs,0.5,,0.136
+interactive.robust_0.8B.BAB,0.331151832460733,6,0.217774794601321,764,Interactive BAB — 0.8B judge,yes_no,0.5,0.548926627062054,0.548926627062054,0.331151832460733,0.217774794601321,verdict_prob_belongs,0.6,,0.25466666666666665
+interactive.robust_0.8B.BAB,0.35241855873642647,7,0.2978727086308228,1013,Interactive BAB — 0.8B judge,yes_no,0.6,0.6502912673672493,0.6502912673672493,0.35241855873642647,0.2978727086308228,verdict_prob_belongs,0.7,,0.33766666666666667
+interactive.robust_0.8B.BAB,0.3647912885662432,8,0.3785514133453074,551,Interactive BAB — 0.8B judge,yes_no,0.7,0.7433427019115506,0.7433427019115506,0.3647912885662432,0.3785514133453074,verdict_prob_belongs,0.8,,0.18366666666666667
+interactive.robust_0.8B.BAB,0.3482142857142857,9,0.47849528746722747,112,Interactive BAB — 0.8B judge,yes_no,0.8,0.8267095731815132,0.8267095731815132,0.3482142857142857,0.47849528746722747,verdict_prob_belongs,0.9,,0.037333333333333336
+interactive.robust_0.8B.BAB,0.0,10,0.9052692867311843,2,Interactive BAB — 0.8B judge,yes_no,0.9,0.9052692867311843,0.9052692867311843,0.0,0.9052692867311843,verdict_prob_belongs,,1.0,0.0006666666666666666
+interactive.robust_0.8B.BAB,,1,,0,Interactive BAB — 0.8B judge,true_false,0.0,,,,,boolean_prob_true,0.1,,0.0
+interactive.robust_0.8B.BAB,,2,,0,Interactive BAB — 0.8B judge,true_false,0.1,,,,,boolean_prob_true,0.2,,0.0
+interactive.robust_0.8B.BAB,1.0,3,0.28776781576105304,1,Interactive BAB — 0.8B judge,true_false,0.2,0.712232184238947,0.2877678157610531,0.0,0.2877678157610531,boolean_prob_true,0.3,,0.0003333333333333333
+interactive.robust_0.8B.BAB,0.8823529411764706,4,0.2515280943371744,17,Interactive BAB — 0.8B judge,true_false,0.3,0.6308248468392962,0.3691751531607038,0.11764705882352941,0.2515280943371744,boolean_prob_true,0.4,,0.005666666666666667
+interactive.robust_0.8B.BAB,0.8333333333333334,5,0.29578120658261486,132,Interactive BAB — 0.8B judge,true_false,0.4,0.5375521267507185,0.4624478732492815,0.16666666666666666,0.29578120658261486,boolean_prob_true,0.5,,0.044
+interactive.robust_0.8B.BAB,0.2303206997084548,6,0.32597221006775,686,Interactive BAB — 0.8B judge,true_false,0.5,0.5562929097762048,0.5562929097762048,0.2303206997084548,0.32597221006775,boolean_prob_true,0.6,,0.22866666666666666
+interactive.robust_0.8B.BAB,0.335036496350365,7,0.31436124702351537,1370,Interactive BAB — 0.8B judge,true_false,0.6,0.6493977433738803,0.6493977433738803,0.335036496350365,0.31436124702351537,boolean_prob_true,0.7,,0.45666666666666667
+interactive.robust_0.8B.BAB,0.4375838926174497,8,0.3019566766016155,745,Interactive BAB — 0.8B judge,true_false,0.7,0.7395405692190652,0.7395405692190652,0.4375838926174497,0.3019566766016155,boolean_prob_true,0.8,,0.24833333333333332
+interactive.robust_0.8B.BAB,0.673469387755102,9,0.14517704903510287,49,Interactive BAB — 0.8B judge,true_false,0.8,0.8186464367902049,0.8186464367902049,0.673469387755102,0.14517704903510287,boolean_prob_true,0.9,,0.01633333333333333
+interactive.robust_0.8B.BAB,,10,,0,Interactive BAB — 0.8B judge,true_false,0.9,,,,,boolean_prob_true,,1.0,0.0
+interactive.robust_0.8B.BAB,0.3333333333333333,1,0.5725773423368206,3,Interactive BAB — 0.8B judge,debater_ab_converted,0.0,0.9059106756701539,0.09408932432984614,0.6666666666666666,0.5725773423368204,debater_prob_yes,0.1,,0.001
+interactive.robust_0.8B.BAB,0.7524752475247525,2,0.07748429919315747,101,Interactive BAB — 0.8B judge,debater_ab_converted,0.1,0.82995954671791,0.17004045328209014,0.24752475247524752,0.07748429919315739,debater_prob_yes,0.2,,0.033666666666666664
+interactive.robust_0.8B.BAB,0.6870967741935484,3,0.054797298795509874,310,Interactive BAB — 0.8B judge,debater_ab_converted,0.2,0.7418940729890583,0.25810592701094176,0.31290322580645163,0.054797298795509874,debater_prob_yes,0.3,,0.10333333333333333
+interactive.robust_0.8B.BAB,0.7080867850098619,4,0.06149018037507381,507,Interactive BAB — 0.8B judge,debater_ab_converted,0.3,0.6465966046347881,0.35340339536521187,0.29191321499013806,0.06149018037507381,debater_prob_yes,0.4,,0.169
+interactive.robust_0.8B.BAB,0.6431159420289855,5,0.09389469549366936,552,Interactive BAB — 0.8B judge,debater_ab_converted,0.4,0.5492212465353161,0.45077875346468393,0.35688405797101447,0.09389469549366947,debater_prob_yes,0.5,,0.184
+interactive.robust_0.8B.BAB,0.397708674304419,6,0.15160166889214172,611,Interactive BAB — 0.8B judge,debater_ab_converted,0.5,0.5493103431965607,0.5493103431965607,0.397708674304419,0.15160166889214172,debater_prob_yes,0.6,,0.20366666666666666
+interactive.robust_0.8B.BAB,0.327683615819209,7,0.320081315147436,531,Interactive BAB — 0.8B judge,debater_ab_converted,0.6,0.647764930966645,0.647764930966645,0.327683615819209,0.320081315147436,debater_prob_yes,0.7,,0.177
+interactive.robust_0.8B.BAB,0.29754601226993865,8,0.4465823929092571,326,Interactive BAB — 0.8B judge,debater_ab_converted,0.7,0.7441284051791958,0.7441284051791958,0.29754601226993865,0.4465823929092571,debater_prob_yes,0.8,,0.10866666666666666
+interactive.robust_0.8B.BAB,0.27586206896551724,9,0.5504099531007134,58,Interactive BAB — 0.8B judge,debater_ab_converted,0.8,0.8262720220662306,0.8262720220662306,0.27586206896551724,0.5504099531007134,debater_prob_yes,0.9,,0.019333333333333334
+interactive.robust_0.8B.BAB,1.0,10,0.04795810380789978,1,Interactive BAB — 0.8B judge,debater_ab_converted,0.9,0.9520418961921002,0.9520418961921002,1.0,0.04795810380789978,debater_prob_yes,,1.0,0.0003333333333333333
+interactive.robust_0.8B.BAB_swapped_labels,,1,,0,Interactive BAB — displayed labels swapped,yes_no,0.0,,,,,verdict_prob_belongs,0.1,,0.0
+interactive.robust_0.8B.BAB_swapped_labels,,2,,0,Interactive BAB — displayed labels swapped,yes_no,0.1,,,,,verdict_prob_belongs,0.2,,0.0
+interactive.robust_0.8B.BAB_swapped_labels,0.8888888888888888,3,0.16398970256403855,27,Interactive BAB — displayed labels swapped,yes_no,0.2,0.7248991863248503,0.2751008136751498,0.1111111111111111,0.16398970256403872,verdict_prob_belongs,0.3,,0.009
+interactive.robust_0.8B.BAB_swapped_labels,0.6985294117647058,4,0.060030050163711324,136,Interactive BAB — displayed labels swapped,yes_no,0.3,0.6384993616009945,0.36150063839900554,0.3014705882352941,0.060030050163711435,verdict_prob_belongs,0.4,,0.04533333333333334
+interactive.robust_0.8B.BAB_swapped_labels,0.7548543689320388,5,0.21087592632262475,412,Interactive BAB — displayed labels swapped,yes_no,0.4,0.5439784426094141,0.4560215573905859,0.24514563106796117,0.21087592632262475,verdict_prob_belongs,0.5,,0.13733333333333334
+interactive.robust_0.8B.BAB_swapped_labels,0.34424083769633507,6,0.20682636575620283,764,Interactive BAB — displayed labels swapped,yes_no,0.5,0.5510672034525379,0.5510672034525379,0.34424083769633507,0.20682636575620283,verdict_prob_belongs,0.6,,0.25466666666666665
+interactive.robust_0.8B.BAB_swapped_labels,0.352306182531894,7,0.2944218183826372,1019,Interactive BAB — displayed labels swapped,yes_no,0.6,0.6467280009145312,0.6467280009145312,0.352306182531894,0.2944218183826372,verdict_prob_belongs,0.7,,0.3396666666666667
+interactive.robust_0.8B.BAB_swapped_labels,0.3704379562043796,8,0.3734164249018479,548,Interactive BAB — displayed labels swapped,yes_no,0.7,0.7438543811062275,0.7438543811062275,0.3704379562043796,0.3734164249018479,verdict_prob_belongs,0.8,,0.18266666666666667
+interactive.robust_0.8B.BAB_swapped_labels,0.3225806451612903,9,0.5038013490982596,93,Interactive BAB — displayed labels swapped,yes_no,0.8,0.8263819942595498,0.8263819942595498,0.3225806451612903,0.5038013490982596,verdict_prob_belongs,0.9,,0.031
+interactive.robust_0.8B.BAB_swapped_labels,0.0,10,0.91610961358942,1,Interactive BAB — displayed labels swapped,yes_no,0.9,0.91610961358942,0.91610961358942,0.0,0.91610961358942,verdict_prob_belongs,,1.0,0.0003333333333333333
+interactive.robust_0.8B.BAB_swapped_labels,,1,,0,Interactive BAB — displayed labels swapped,true_false,0.0,,,,,boolean_prob_true,0.1,,0.0
+interactive.robust_0.8B.BAB_swapped_labels,,2,,0,Interactive BAB — displayed labels swapped,true_false,0.1,,,,,boolean_prob_true,0.2,,0.0
+interactive.robust_0.8B.BAB_swapped_labels,0.5,3,0.2231758555695651,2,Interactive BAB — displayed labels swapped,true_false,0.2,0.7231758555695651,0.276824144430435,0.5,0.22317585556956498,boolean_prob_true,0.3,,0.0006666666666666666
+interactive.robust_0.8B.BAB_swapped_labels,0.896551724137931,4,0.2721724993063286,29,Interactive BAB — displayed labels swapped,true_false,0.3,0.6243792248316025,0.3756207751683974,0.10344827586206896,0.2721724993063285,boolean_prob_true,0.4,,0.009666666666666667
+interactive.robust_0.8B.BAB_swapped_labels,0.8186274509803921,5,0.28237811261371315,204,Interactive BAB — displayed labels swapped,true_false,0.4,0.536249338366679,0.46375066163332107,0.18137254901960784,0.28237811261371326,boolean_prob_true,0.5,,0.068
+interactive.robust_0.8B.BAB_swapped_labels,0.26905829596412556,6,0.285750050304329,892,Interactive BAB — displayed labels swapped,true_false,0.5,0.5548083462684545,0.5548083462684545,0.26905829596412556,0.285750050304329,boolean_prob_true,0.6,,0.29733333333333334
+interactive.robust_0.8B.BAB_swapped_labels,0.35180908391070054,7,0.29557329579180136,1299,Interactive BAB — displayed labels swapped,true_false,0.6,0.6473823797025019,0.6473823797025019,0.35180908391070054,0.29557329579180136,boolean_prob_true,0.7,,0.433
+interactive.robust_0.8B.BAB_swapped_labels,0.44770642201834865,8,0.2891734384318594,545,Interactive BAB — displayed labels swapped,true_false,0.7,0.736879860450208,0.736879860450208,0.44770642201834865,0.2891734384318594,boolean_prob_true,0.8,,0.18166666666666667
+interactive.robust_0.8B.BAB_swapped_labels,0.6206896551724138,9,0.195246368840711,29,Interactive BAB — displayed labels swapped,true_false,0.8,0.8159360240131248,0.8159360240131248,0.6206896551724138,0.195246368840711,boolean_prob_true,0.9,,0.009666666666666667
+interactive.robust_0.8B.BAB_swapped_labels,,10,,0,Interactive BAB — displayed labels swapped,true_false,0.9,,,,,boolean_prob_true,,1.0,0.0
+interactive.robust_0.8B.BAB_swapped_labels,0.7578947368421053,1,0.16022928620814347,95,Interactive BAB — displayed labels swapped,debater_ab_converted,0.0,0.9181240230502488,0.08187597694975128,0.24210526315789474,0.16022928620814347,debater_prob_yes,0.1,,0.03166666666666667
+interactive.robust_0.8B.BAB_swapped_labels,0.6646971935007385,2,0.18407490011573158,677,Interactive BAB — displayed labels swapped,debater_ab_converted,0.1,0.8487720936164701,0.15122790638352998,0.3353028064992615,0.1840749001157315,debater_prob_yes,0.2,,0.22566666666666665
+interactive.robust_0.8B.BAB_swapped_labels,0.6514522821576764,3,0.10496949634862052,482,Interactive BAB — displayed labels swapped,debater_ab_converted,0.2,0.7564217785062969,0.24357822149370306,0.34854771784232363,0.10496949634862057,debater_prob_yes,0.3,,0.16066666666666668
+interactive.robust_0.8B.BAB_swapped_labels,0.7025316455696202,4,0.03550500248996247,158,Interactive BAB — displayed labels swapped,debater_ab_converted,0.3,0.6670266430796578,0.3329733569203423,0.2974683544303797,0.03550500248996258,debater_prob_yes,0.4,,0.05266666666666667
+interactive.robust_0.8B.BAB_swapped_labels,0.7758620689655172,5,0.22006741321189738,58,Interactive BAB — displayed labels swapped,debater_ab_converted,0.4,0.5557946557536199,0.44420534424638014,0.22413793103448276,0.22006741321189738,debater_prob_yes,0.5,,0.019333333333333334
+interactive.robust_0.8B.BAB_swapped_labels,0.4025974025974026,6,0.14728789140968912,77,Interactive BAB — displayed labels swapped,debater_ab_converted,0.5,0.5498852940070917,0.5498852940070917,0.4025974025974026,0.14728789140968912,debater_prob_yes,0.6,,0.025666666666666667
+interactive.robust_0.8B.BAB_swapped_labels,0.358974358974359,7,0.2988744782339349,156,Interactive BAB — displayed labels swapped,debater_ab_converted,0.6,0.6578488372082939,0.6578488372082939,0.358974358974359,0.2988744782339349,debater_prob_yes,0.7,,0.052
+interactive.robust_0.8B.BAB_swapped_labels,0.3201754385964912,8,0.44137121406725266,456,Interactive BAB — displayed labels swapped,debater_ab_converted,0.7,0.7615466526637439,0.7615466526637439,0.3201754385964912,0.44137121406725266,debater_prob_yes,0.8,,0.152
+interactive.robust_0.8B.BAB_swapped_labels,0.34285714285714286,9,0.5040816801966227,700,Interactive BAB — displayed labels swapped,debater_ab_converted,0.8,0.8469388230537656,0.8469388230537656,0.34285714285714286,0.5040816801966227,debater_prob_yes,0.9,,0.23333333333333334
+interactive.robust_0.8B.BAB_swapped_labels,0.3475177304964539,10,0.569399137794361,141,Interactive BAB — displayed labels swapped,debater_ab_converted,0.9,0.916916868290815,0.916916868290815,0.3475177304964539,0.569399137794361,debater_prob_yes,,1.0,0.047
+statement.rejudge_2B,0.9713408393039918,1,0.03761350105129502,977,Statement — rejudged by 2B,yes_no,0.0,0.9337273382526968,0.06627266174730317,0.028659160696008188,0.03761350105129499,verdict_prob_belongs,0.1,,0.32566666666666666
+statement.rejudge_2B,0.8123543123543123,2,0.04559814412209007,858,Statement — rejudged by 2B,yes_no,0.1,0.8579524564764024,0.14204754352359752,0.18764568764568765,0.04559814412209012,verdict_prob_belongs,0.2,,0.286
+statement.rejudge_2B,0.5349462365591398,3,0.22015780514228867,372,Statement — rejudged by 2B,yes_no,0.2,0.7551040417014284,0.24489595829857153,0.4650537634408602,0.22015780514228867,verdict_prob_belongs,0.3,,0.124
+statement.rejudge_2B,0.2857142857142857,4,0.3662313819508105,294,Statement — rejudged by 2B,yes_no,0.3,0.6519456676650962,0.34805433233490374,0.7142857142857143,0.36623138195081056,verdict_prob_belongs,0.4,,0.098
+statement.rejudge_2B,0.20588235294117646,5,0.3490026040532043,238,Statement — rejudged by 2B,yes_no,0.4,0.5548849569943808,0.44511504300561927,0.7941176470588235,0.3490026040532042,verdict_prob_belongs,0.5,,0.07933333333333334
+statement.rejudge_2B,0.8869047619047619,6,0.3430774333393951,168,Statement — rejudged by 2B,yes_no,0.5,0.5438273285653668,0.5438273285653668,0.8869047619047619,0.3430774333393951,verdict_prob_belongs,0.6,,0.056
+statement.rejudge_2B,0.963855421686747,7,0.3168105961462373,83,Statement — rejudged by 2B,yes_no,0.6,0.6470448255405097,0.6470448255405097,0.963855421686747,0.3168105961462373,verdict_prob_belongs,0.7,,0.027666666666666666
+statement.rejudge_2B,1.0,8,0.27007469708649723,10,Statement — rejudged by 2B,yes_no,0.7,0.7299253029135028,0.7299253029135028,1.0,0.27007469708649723,verdict_prob_belongs,0.8,,0.0033333333333333335
+statement.rejudge_2B,,9,,0,Statement — rejudged by 2B,yes_no,0.8,,,,,verdict_prob_belongs,0.9,,0.0
+statement.rejudge_2B,,10,,0,Statement — rejudged by 2B,yes_no,0.9,,,,,verdict_prob_belongs,,1.0,0.0
+statement.rejudge_2B,1.0,1,0.09201522373690985,13,Statement — rejudged by 2B,true_false,0.0,0.9079847762630902,0.09201522373690992,0.0,0.09201522373690992,boolean_prob_true,0.1,,0.004333333333333333
+statement.rejudge_2B,0.905952380952381,2,0.07184209948136855,840,Statement — rejudged by 2B,true_false,0.1,0.8341102814710124,0.16588971852898765,0.09404761904761905,0.0718420994813686,boolean_prob_true,0.2,,0.28
+statement.rejudge_2B,0.7356687898089171,3,0.01987558820166513,1256,Statement — rejudged by 2B,true_false,0.2,0.7555443780105823,0.24445562198941778,0.2643312101910828,0.019875588201665018,boolean_prob_true,0.3,,0.4186666666666667
+statement.rejudge_2B,0.4148606811145511,4,0.24385050090662863,646,Statement — rejudged by 2B,true_false,0.3,0.6587111820211797,0.3412888179788204,0.5851393188854489,0.24385050090662852,boolean_prob_true,0.4,,0.21533333333333332
+statement.rejudge_2B,0.13612565445026178,5,0.42448851008438115,191,Statement — rejudged by 2B,true_false,0.4,0.560614164534643,0.43938583546535703,0.8638743455497382,0.42448851008438115,boolean_prob_true,0.5,,0.06366666666666666
+statement.rejudge_2B,0.8461538461538461,6,0.31463929443641603,52,Statement — rejudged by 2B,true_false,0.5,0.5315145517174301,0.5315145517174301,0.8461538461538461,0.31463929443641603,boolean_prob_true,0.6,,0.017333333333333333
+statement.rejudge_2B,1.0,7,0.38493874948262685,2,Statement — rejudged by 2B,true_false,0.6,0.6150612505173731,0.6150612505173731,1.0,0.38493874948262685,boolean_prob_true,0.7,,0.0006666666666666666
+statement.rejudge_2B,,8,,0,Statement — rejudged by 2B,true_false,0.7,,,,,boolean_prob_true,0.8,,0.0
+statement.rejudge_2B,,9,,0,Statement — rejudged by 2B,true_false,0.8,,,,,boolean_prob_true,0.9,,0.0
+statement.rejudge_2B,,10,,0,Statement — rejudged by 2B,true_false,0.9,,,,,boolean_prob_true,,1.0,0.0
+statement.rejudge_2B,,1,,0,Statement — rejudged by 2B,debater_ab_converted,0.0,,,,,debater_prob_yes,0.1,,0.0
+statement.rejudge_2B,0.5777777777777777,2,0.24882944719895683,180,Statement — rejudged by 2B,debater_ab_converted,0.1,0.8266072249767346,0.17339277502326536,0.4222222222222222,0.24882944719895686,debater_prob_yes,0.2,,0.06
+statement.rejudge_2B,0.6915760869565217,3,0.05623659126410108,736,Statement — rejudged by 2B,debater_ab_converted,0.2,0.7478126782206228,0.2521873217793772,0.30842391304347827,0.05623659126410108,debater_prob_yes,0.3,,0.24533333333333332
+statement.rejudge_2B,0.6736111111111112,4,0.015010259580472418,432,Statement — rejudged by 2B,debater_ab_converted,0.3,0.6586008515306387,0.3413991484693613,0.3263888888888889,0.015010259580472418,debater_prob_yes,0.4,,0.144
+statement.rejudge_2B,0.6179775280898876,5,0.06045264235190961,89,Statement — rejudged by 2B,debater_ab_converted,0.4,0.557524885737978,0.442475114262022,0.38202247191011235,0.06045264235190967,debater_prob_yes,0.5,,0.029666666666666668
+statement.rejudge_2B,0.4065040650406504,6,0.15440258008950303,123,Statement — rejudged by 2B,debater_ab_converted,0.5,0.5609066451301534,0.5609066451301534,0.4065040650406504,0.15440258008950303,debater_prob_yes,0.6,,0.041
+statement.rejudge_2B,0.3157894736842105,7,0.3456291072944754,456,Statement — rejudged by 2B,debater_ab_converted,0.6,0.6614185809786859,0.6614185809786859,0.3157894736842105,0.3456291072944754,debater_prob_yes,0.7,,0.152
+statement.rejudge_2B,0.3006535947712418,8,0.4470525858630822,765,Statement — rejudged by 2B,debater_ab_converted,0.7,0.747706180634324,0.747706180634324,0.3006535947712418,0.4470525858630822,debater_prob_yes,0.8,,0.255
+statement.rejudge_2B,0.44495412844036697,9,0.38101505732216556,218,Statement — rejudged by 2B,debater_ab_converted,0.8,0.8259691857625325,0.8259691857625325,0.44495412844036697,0.38101505732216556,debater_prob_yes,0.9,,0.07266666666666667
+statement.rejudge_2B,1.0,10,0.0998206675676232,1,Statement — rejudged by 2B,debater_ab_converted,0.9,0.9001793324323768,0.9001793324323768,1.0,0.0998206675676232,debater_prob_yes,,1.0,0.0003333333333333333
+statement.robust_0.8B,,1,,0,Statement — 0.8B judge,yes_no,0.0,,,,,verdict_prob_belongs,0.1,,0.0
+statement.robust_0.8B,1.0,2,0.15002882434242504,1,Statement — 0.8B judge,yes_no,0.1,0.849971175657575,0.1500288243424251,0.0,0.1500288243424251,verdict_prob_belongs,0.2,,0.0003333333333333333
+statement.robust_0.8B,1.0,3,0.2604398050421639,4,Statement — 0.8B judge,yes_no,0.2,0.7395601949578361,0.26043980504216385,0.0,0.26043980504216385,verdict_prob_belongs,0.3,,0.0013333333333333333
+statement.robust_0.8B,0.868421052631579,4,0.23893190750443205,38,Statement — 0.8B judge,yes_no,0.3,0.6294891451271469,0.370510854872853,0.13157894736842105,0.23893190750443197,verdict_prob_belongs,0.4,,0.012666666666666666
+statement.robust_0.8B,0.7758620689655172,5,0.23292246636714764,116,Statement — 0.8B judge,yes_no,0.4,0.5429396025983696,0.45706039740163046,0.22413793103448276,0.2329224663671477,verdict_prob_belongs,0.5,,0.03866666666666667
+statement.robust_0.8B,0.22318840579710145,6,0.3274277934594704,345,Statement — 0.8B judge,yes_no,0.5,0.5506161992565718,0.5506161992565718,0.22318840579710145,0.3274277934594704,verdict_prob_belongs,0.6,,0.115
+statement.robust_0.8B,0.273371104815864,7,0.38059623198332404,706,Statement — 0.8B judge,yes_no,0.6,0.6539673367991881,0.6539673367991881,0.273371104815864,0.38059623198332404,verdict_prob_belongs,0.7,,0.23533333333333334
+statement.robust_0.8B,0.34347826086956523,8,0.4080758692718899,920,Statement — 0.8B judge,yes_no,0.7,0.7515541301414551,0.7515541301414551,0.34347826086956523,0.4080758692718899,verdict_prob_belongs,0.8,,0.30666666666666664
+statement.robust_0.8B,0.4410596026490066,9,0.40352315517865406,755,Statement — 0.8B judge,yes_no,0.8,0.8445827578276607,0.8445827578276607,0.4410596026490066,0.40352315517865406,verdict_prob_belongs,0.9,,0.25166666666666665
+statement.robust_0.8B,0.43478260869565216,10,0.48858085084956965,115,Statement — 0.8B judge,yes_no,0.9,0.9233634595452218,0.9233634595452218,0.43478260869565216,0.48858085084956965,verdict_prob_belongs,,1.0,0.03833333333333333
+statement.robust_0.8B,,1,,0,Statement — 0.8B judge,true_false,0.0,,,,,boolean_prob_true,0.1,,0.0
+statement.robust_0.8B,1.0,2,0.19682620364309855,1,Statement — 0.8B judge,true_false,0.1,0.8031737963569014,0.1968262036430985,0.0,0.1968262036430985,boolean_prob_true,0.2,,0.0003333333333333333
+statement.robust_0.8B,0.825,3,0.09733124178476582,80,Statement — 0.8B judge,true_false,0.2,0.7276687582152341,0.2723312417847659,0.175,0.09733124178476593,boolean_prob_true,0.3,,0.02666666666666667
+statement.robust_0.8B,0.8157894736842105,4,0.17775408289889227,646,Statement — 0.8B judge,true_false,0.3,0.6380353907853182,0.36196460921468177,0.18421052631578946,0.1777540828988923,boolean_prob_true,0.4,,0.21533333333333332
+statement.robust_0.8B,0.6666666666666666,5,0.11582568352132239,1143,Statement — 0.8B judge,true_false,0.4,0.5508409831453442,0.44915901685465576,0.3333333333333333,0.11582568352132244,boolean_prob_true,0.5,,0.381
+statement.robust_0.8B,0.39909297052154197,6,0.14017142903555618,882,Statement — 0.8B judge,true_false,0.5,0.5392643995570982,0.5392643995570982,0.39909297052154197,0.14017142903555618,boolean_prob_true,0.6,,0.294
+statement.robust_0.8B,0.5374449339207048,7,0.09362675249136321,227,Statement — 0.8B judge,true_false,0.6,0.631071686412068,0.631071686412068,0.5374449339207048,0.09362675249136321,boolean_prob_true,0.7,,0.07566666666666666
+statement.robust_0.8B,0.5714285714285714,8,0.15522088831185477,21,Statement — 0.8B judge,true_false,0.7,0.7266494597404262,0.7266494597404262,0.5714285714285714,0.15522088831185477,boolean_prob_true,0.8,,0.007
+statement.robust_0.8B,,9,,0,Statement — 0.8B judge,true_false,0.8,,,,,boolean_prob_true,0.9,,0.0
+statement.robust_0.8B,,10,,0,Statement — 0.8B judge,true_false,0.9,,,,,boolean_prob_true,,1.0,0.0
+statement.robust_0.8B,0.7962962962962963,1,0.12238074459380532,54,Statement — 0.8B judge,debater_ab_converted,0.0,0.9186770408901016,0.08132295910989852,0.2037037037037037,0.12238074459380517,debater_prob_yes,0.1,,0.018
+statement.robust_0.8B,0.7760532150776053,2,0.06692189958467343,451,Statement — 0.8B judge,debater_ab_converted,0.1,0.8429751146622787,0.15702488533772133,0.22394678492239467,0.06692189958467334,debater_prob_yes,0.2,,0.15033333333333335
+statement.robust_0.8B,0.634765625,3,0.11923046985547026,512,Statement — 0.8B judge,debater_ab_converted,0.2,0.7539960948554703,0.2460039051445298,0.365234375,0.1192304698554702,debater_prob_yes,0.3,,0.17066666666666666
+statement.robust_0.8B,0.5590277777777778,4,0.10081259959455058,288,Statement — 0.8B judge,debater_ab_converted,0.3,0.6598403773723284,0.3401596226276717,0.4409722222222222,0.10081259959455052,debater_prob_yes,0.4,,0.096
+statement.robust_0.8B,0.5727272727272728,5,0.014415736127941892,110,Statement — 0.8B judge,debater_ab_converted,0.4,0.5583115365993309,0.44168846340066914,0.42727272727272725,0.014415736127941892,debater_prob_yes,0.5,,0.03666666666666667
+statement.robust_0.8B,0.4186046511627907,6,0.13791497602020547,86,Statement — 0.8B judge,debater_ab_converted,0.5,0.5565196271829962,0.5565196271829962,0.4186046511627907,0.13791497602020547,debater_prob_yes,0.6,,0.028666666666666667
+statement.robust_0.8B,0.3791469194312796,7,0.2816663005596261,211,Statement — 0.8B judge,debater_ab_converted,0.6,0.6608132199909057,0.6608132199909057,0.3791469194312796,0.2816663005596261,debater_prob_yes,0.7,,0.07033333333333333
+statement.robust_0.8B,0.35608856088560886,8,0.39959462414107244,542,Statement — 0.8B judge,debater_ab_converted,0.7,0.7556831850266813,0.7556831850266813,0.35608856088560886,0.39959462414107244,debater_prob_yes,0.8,,0.18066666666666667
+statement.robust_0.8B,0.3,9,0.5453904568886665,660,Statement — 0.8B judge,debater_ab_converted,0.8,0.8453904568886664,0.8453904568886664,0.3,0.5453904568886665,debater_prob_yes,0.9,,0.22
+statement.robust_0.8B,0.23255813953488372,10,0.6848681233773541,86,Statement — 0.8B judge,debater_ab_converted,0.9,0.9174262629122378,0.9174262629122378,0.23255813953488372,0.6848681233773541,debater_prob_yes,,1.0,0.028666666666666667

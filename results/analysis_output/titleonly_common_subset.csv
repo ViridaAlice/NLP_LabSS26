@@ -1,0 +1,4 @@
+condition_id,strict_accuracy,balanced_accuracy,common_exact_records,display_name,false_negative_rate,false_positive_rate,yes_prediction_rate
+asymmetric_titleonly.baseline,0.8557457212713936,0.7090277777777778,2045,Title-only asymmetric — baseline,0.4444444444444444,0.1375,0.1466992665036675
+asymmetric_titleonly.statement,0.845476772616137,0.7580833333333333,2045,Title-only asymmetric — statements,0.3333333333333333,0.1505,0.16185819070904645
+asymmetric_titleonly.interactive.ABA,0.8004889975550122,0.6916388888888889,2045,Title-only asymmetric — interactive ABA,0.4222222222222222,0.1945,0.20293398533007334

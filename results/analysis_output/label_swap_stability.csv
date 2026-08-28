@@ -1,0 +1,2 @@
+clean_label_test,content_mismatch_pairs,content_verified_pairs,correctness_gained_after_swap,correctness_lost_after_swap,exact_pairs,net_accuracy_change,no_to_yes,prediction_agreement_count,prediction_agreement_rate,prediction_flip_count,prediction_flip_rate,status,yes_to_no
+True,0,3000,383,375,3000,0.0026666666666666666,391,2242,0.7473333333333333,758,0.2526666666666667,controlled,367

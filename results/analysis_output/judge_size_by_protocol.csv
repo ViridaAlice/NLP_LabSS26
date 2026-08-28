@@ -1,0 +1,13 @@
+condition_id,strict_accuracy,balanced_accuracy,complete,fallback_rate,false_negative_rate,false_positive_rate,judge,manual,protocol,records,similar_tag_accuracy,true_tag_accuracy,unrelated_tag_accuracy,yes_prediction_rate
+baseline.robust_0.8B.no_manual,0.8333333333333334,0.81725,True,0.0,0.231,0.1345,0.8B,False,"Baseline, no manual",3000,0.819,0.769,0.912,0.346
+baseline.robust_2B.no_manual,0.8693333333333333,0.86125,True,0.0,0.163,0.1145,2B,False,"Baseline, no manual",3000,0.826,0.837,0.945,0.35533333333333333
+baseline.robust_4B.no_manual,0.8033333333333333,0.83925,True,0.36733333333333335,0.053,0.2685,4B,False,"Baseline, no manual",3000,0.661,0.947,0.802,0.49466666666666664
+baseline.robust_0.8B.with_manual,0.8016666666666666,0.76275,True,0.0,0.354,0.1205,0.8B,True,"Baseline, with manual",3000,0.831,0.646,0.928,0.2956666666666667
+baseline.robust_2B.with_manual,0.85,0.83275,True,0.0,0.219,0.1155,2B,True,"Baseline, with manual",3000,0.838,0.781,0.931,0.3373333333333333
+baseline.robust_4B.with_manual,0.5466666666666666,0.65875,True,0.787,0.005,0.6775,4B,True,"Baseline, with manual",3000,0.235,0.995,0.41,0.7833333333333333
+statement.robust_0.8B,0.6566666666666666,0.6725,True,0.2986666666666667,0.28,0.375,0.8B,False,Independent statements,3000,0.623,0.72,0.627,0.49
+statement.rejudge_2B,0.795,0.7365,True,0.0,0.439,0.088,2B,False,Independent statements,3000,0.887,0.561,0.937,0.24566666666666667
+interactive.robust_0.8B.ABA,0.5536666666666666,0.6085,True,0.736,0.227,0.556,0.8B,False,Interactive ABA,3000,0.428,0.773,0.46,0.6283333333333333
+interactive.rejudge_2B.ABA,0.7516666666666667,0.72975,True,0.0,0.336,0.2045,2B,False,Interactive ABA,3000,0.76,0.664,0.831,0.3576666666666667
+interactive.robust_0.8B.BAB,0.5433333333333333,0.60275,True,0.6553333333333333,0.219,0.5755,0.8B,False,Interactive BAB,3000,0.396,0.781,0.453,0.644
+interactive.rejudge_2B.BAB,0.741,0.73875,True,0.0,0.268,0.2545,2B,False,Interactive BAB,3000,0.717,0.732,0.774,0.4136666666666667

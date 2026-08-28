@@ -1,0 +1,17 @@
+stage,correctness_---,correctness_--S,correctness_-B-,correctness_-BS,correctness_A--,correctness_A-S,correctness_AB-,correctness_ABS,count,pattern,share_within_stage,three_way_exact_match_total
+ALL,600,,,,,,,894,1494,ABA = BAB = swapped,0.498,3000
+ALL,,181,,,,,178,,359,ABA = BAB; swapped differs,0.11966666666666667,3000
+ALL,,,197,,,202,,,399,ABA = swapped; BAB differs,0.133,3000
+ALL,,,,361,387,,,,748,ABA differs; BAB = swapped,0.24933333333333332,3000
+Round 1: True Tag,50,,,,,,,581,631,ABA = BAB = swapped,0.631,3000
+Round 1: True Tag,,28,,,,,51,,79,ABA = BAB; swapped differs,0.079,3000
+Round 1: True Tag,,,21,,,60,,,81,ABA = swapped; BAB differs,0.081,3000
+Round 1: True Tag,,,,128,81,,,,209,ABA differs; BAB = swapped,0.209,3000
+Round 2: Unrelated Tag,242,,,,,,,176,418,ABA = BAB = swapped,0.418,3000
+Round 2: Unrelated Tag,,87,,,,,66,,153,ABA = BAB; swapped differs,0.153,3000
+Round 2: Unrelated Tag,,,94,,,69,,,163,ABA = swapped; BAB differs,0.163,3000
+Round 2: Unrelated Tag,,,,117,149,,,,266,ABA differs; BAB = swapped,0.266,3000
+Round 3: Similar Tag,308,,,,,,,137,445,ABA = BAB = swapped,0.445,3000
+Round 3: Similar Tag,,66,,,,,61,,127,ABA = BAB; swapped differs,0.127,3000
+Round 3: Similar Tag,,,82,,,73,,,155,ABA = swapped; BAB differs,0.155,3000
+Round 3: Similar Tag,,,,116,157,,,,273,ABA differs; BAB = swapped,0.273,3000
